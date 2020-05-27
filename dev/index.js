@@ -7,6 +7,8 @@ const cp = require('child_process')
 const _debug = require('debug')
 const anitomy = require('@teidesu/anitomy-js')
 const fetch = require('node-fetch')
+const iconv = require('iconv-lite')
+const cheerio = require('cheerio')
 const dotenv = require('dotenv')
 const env = dotenv.parse(fs.readFileSync(path.join(__dirname, '../.env')).toString('utf-8'))
 
@@ -187,6 +189,29 @@ app.get('/ws', (req, res) => {
                                 console.log(it.response.items.map(it => it.title).join('\n'))
                             }
                         }).catch(console.error)
+                    }
+
+                    m = text.match(/^(?:https:\/\/)?video\.sibnet\.ru\/users\/(.+?)(?:[\/?#]|$)/i)
+                    if (m) {
+                        const [, owner] = m
+                        m = text.match(/page=(\d+)/)
+                        let page = m ? m[1] : 1
+                        return fetch(`https://video.sibnet.ru/users/${encodeURIComponent(owner)}/video/?sort=0&page=${page}`)
+                            .then(i => {
+                                if (i.status !== 200) debug('http %d', i.status)
+
+                                return i.buffer()
+                            })
+                            .then((buf) => {
+                                const html = iconv.decode(buf, 'win1251')
+                                const $ = cheerio.load(html)
+                                debug('%s video names:', owner)
+                                console.log($('.video_cell>.preview>a').toArray().map((it) => {
+                                    let titleParts = it.attribs.title.split(' - ')
+                                    titleParts.pop()
+                                    return titleParts.join(' - ')
+                                }).join('\n'))
+                            })
                     }
                     debug('Unknown URL')
                 }

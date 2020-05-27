@@ -9,6 +9,7 @@ export function entry (ctx: ParserContext) {
             {
                 regex: /^(?:\[(.+?)\])?(?: ?(.+?) [\\\/])* ?(.+?) *\[ *(\d+)(?: *\(\d+\))?(?: из (?:\d+|[xXхХ]{2,3}))?(?: *\(\d+\))? *\] *[(\[](.+?)[)\]]$/i,
                 target: v => v.title,
+                skip: v => !!v.title.match(/amv/i),
                 fields: {
                     target: m => [m[2], m[3]],
                     part: m => m[4],

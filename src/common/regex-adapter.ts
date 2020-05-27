@@ -59,7 +59,7 @@ export function entry (ctx: ParserContext): Function {
                     continue
                 }
                 matched = true
-                ctx.debug('matched: %o', match)
+                ctx.debug('%d regex matched: %o', i, match)
 
                 const resolve = async <R> (field: RegexFieldResolver<T, R>): Promise<R> => {
                     if (!(field instanceof Function)) {

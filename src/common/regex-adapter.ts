@@ -37,7 +37,7 @@ export interface RegexAdapterOptions<T> {
         author: RegexFieldResolver<T, string>
         url?: RegexFieldResolver<T, string>
     },
-    moreUrls?: ((item: T) => string | string[] | Promise<string | string[]>)[]
+    moreUrls?: ((item: T, translation: Translation) => string | string[] | Promise<string | string[]>)[]
 }
 
 export const provide = ['common/lookup', 'common/fix-mixed-langs']
@@ -50,7 +50,7 @@ export function entry (ctx: ParserContext): Function {
         return async function (item: T): Promise<Translation[]> {
             let ret: Translation[] = []
             let matched = false
-            for (let options of optionsArray) {
+            for (let [i, options] of ctx.libs.objectUtils.enumerate(optionsArray)) {
                 const matchTarget = typeof options.target === 'string'
                     ? item[options.target]
                     : await (options.target as Function)(item)
@@ -150,7 +150,7 @@ export function entry (ctx: ParserContext): Function {
 
                 if (options.moreUrls) {
                     for (let func of options.moreUrls) {
-                        let urls = await func(item)
+                        let urls = await func(item, translation)
                         if (!Array.isArray(urls)) {
                             urls = [urls]
                         }

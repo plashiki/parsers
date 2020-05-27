@@ -14,7 +14,7 @@ export function entry (ctx: ParserContext) {
                     part: m => m[4],
                     kind: 'dub',
                     lang: 'ru',
-                    author: m => (m[1] || '') + (m[5] || '')
+                    author: m => (m[1] || '') + (m[5] ? m[1] ? ' (' + m[5] + ')' : m[5] : '')
                 }
             }
         ])

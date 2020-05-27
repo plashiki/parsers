@@ -17,6 +17,56 @@ interface LookupFactoryOptions<T, V> {
 
 export function entry (ctx: ParserContext): Function {
     const threshold = parseInt(process.env.FUZZY_THRESHOLD!)
+    let mkIndex = (s: string): Record<string, 1> => s.split('').reduce((a, b) => {
+        a[b] = 1
+        return a
+    }, {})
+    let removeChars = mkIndex('«»\'"‘’“”„「」『』《》〈〉()\\[\\]{}<>-_⁓‐‑‒–—―`~!@#$%^&*;:.,\\/?|')
+    let canLeaveInMiddle = mkIndex('⁓‐‑‒–—―.,;/\\$_-')
+    let canLeaveOnEnd = mkIndex('!?\'')
+
+    let isWhitespace = s => s.match(/\s/)
+
+    function normalizeString (s) {
+        let prevWhitespace = false
+        let ret = ''
+        const lastIndex = s.length - 1
+        for (let i = 0; i <= lastIndex; i++) {
+            let c = s[i].toLowerCase()
+            let ws = isWhitespace(c)
+            if (c in removeChars) {
+                if (!prevWhitespace) {
+                    if (i === lastIndex || isWhitespace(s[i + 1])) {
+                        // end of word/string
+                        if (c in canLeaveOnEnd) {
+                            ret += c
+                        }
+                    } else {
+                        if (c in canLeaveOnEnd) {
+                            // middle or maybe one of last chars
+                            // probably not the most efficient way, but kinda works (?)
+                            let j = i + 1
+                            while (s[j] in canLeaveOnEnd && j < lastIndex) {
+                                j++
+                            }
+                            if (c in canLeaveInMiddle || j === lastIndex || isWhitespace(s[j])) {
+                                ret += c
+                            }
+                        } else if (c in canLeaveInMiddle) {
+                            // middle of word
+                            ret += c
+                        }
+                    }
+                }
+                continue
+            } else if (!prevWhitespace || prevWhitespace && !ws) {
+                ret += c
+            }
+            prevWhitespace = isWhitespace(c)
+        }
+
+        return ret.trim()
+    }
 
     function shikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
         return ctx.libs.fetch(`https://shikimori.one/api/${mediaType}s?${ctx.libs.qs.stringify({
@@ -116,7 +166,7 @@ export function entry (ctx: ParserContext): Function {
 
                         for (let itName of itNames) {
                             for (let n of names) {
-                                let sim = ctx.libs.fuzz.ratio(itName, n)
+                                let sim = ctx.libs.fuzz.ratio(normalizeString(itName), n, { full_process: false })
                                 if (sim > maxSimilarity) {
                                     maxSimilarity = sim
                                     maxSimilarityItem = it
@@ -237,16 +287,7 @@ export function entry (ctx: ParserContext): Function {
             return null
         }
         // normalize input
-        names = names.map(i =>
-            i!.toLowerCase()
-                // special symbols inside words
-                .replace(/(\S)[«»'"‘’“”„「」『』《》〈〉()\[\]{}<>\-_⁓‐‑‒–—―`~!@#$%^&*;:.,\/\\?|](\S)/g, (_, $1, $2) => $1 + ' ' + $2)
-                // special symbols
-                .replace(/[«»'"‘’“”„「」『』《》〈〉()\[\]{}<>\-_⁓‐‑‒–—―`~!@#$%^&*;:.,\/\\?|]/g, '')
-                // multiple and non-space whitespaces
-                .replace(/\s+/g, ' ')
-                .trim()
-        )
+        names = names.map(i => normalizeString(i!))
 
 
         let queue = ['shikimori', 'anime365', 'kitsu', 'mal', 'anilist']

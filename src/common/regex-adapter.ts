@@ -49,15 +49,16 @@ export function entry (ctx: ParserContext): Function {
     return function <T> (optionsArray: RegexAdapterOptions<T>[]): ParserAdapter<T, Translation> {
         return async function (item: T): Promise<Translation[]> {
             let ret: Translation[] = []
+            let matched = false
             for (let options of optionsArray) {
-                const matchTarget = typeof options.target === 'string' ?
-                    item[options.target] :
-                    await (options.target as Function)(item)
+                const matchTarget = typeof options.target === 'string'
+                    ? item[options.target]
+                    : await (options.target as Function)(item)
                 const match = (matchTarget as string).match(options.regex)
                 if (!match) {
-                    ctx.log('%s did not match', matchTarget)
                     continue
                 }
+                matched = true
                 ctx.debug('matched: %o', match)
 
                 const resolve = async <R> (field: RegexFieldResolver<T, R>): Promise<R> => {
@@ -164,6 +165,10 @@ export function entry (ctx: ParserContext): Function {
                 if (ret.length) {
                     break
                 }
+            }
+
+            if (!matched) {
+                ctx.log('did not match: %o', item)
             }
 
             return ret

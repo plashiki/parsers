@@ -1,0 +1,94 @@
+import { AnyKV, LookupOptions, MediaMeta, ParserAdapter, Translation } from './index'
+import { Debugger } from 'debug'
+import { libs } from '../utils/parsers-libs'
+import { VkImporterOptions } from '../src/services/vk-video'
+import { RegexAdapterOptions } from '../src/common/regex-adapter'
+import { AnitomyAdapterOptions } from '../src/common/anitomy-adapter'
+import { IncrementalGrabOptions } from '../src/common/incremental-grab'
+import { MapperMeta } from '../src/common/mapper-url2meta'
+
+export interface ParserContext<P = AnyKV> {
+    /**
+     * Current environment
+     */
+    env: 'local' | 'server'
+
+    /**
+     * UID of a parser.
+     */
+    uid: string
+
+    /**
+     * UID of a root parser (i.e. which is currently actually running)
+     * When not equal to `uid` then parser was imported by `rootUid`
+     */
+    rootUid: string
+
+    /**
+     * Parser's runtime parameters.
+     */
+    params: P
+
+    /**
+     * Server's config.ts. Can be useful...sometimes.
+     * Not available when running locally, be careful!
+     *
+     * Better use .env file and `process.env` for deploy-time constants
+     */
+    config?: AnyKV
+
+    /**
+     * Parser's dependencies. Key is provided parser's UID, value is their return value
+     */
+    deps: {
+        'common/lookup' (options: LookupOptions): Promise<MediaMeta | null>
+        'common/regex-adapter'<T> (optionsArray: RegexAdapterOptions<T>[]): ParserAdapter<T, Translation>
+        'common/compose'<T, R> (adapters: ParserAdapter<T, R>[]): ParserAdapter<T, R>
+        'common/anitomy-adapter'<T> (options: AnitomyAdapterOptions<T>): ParserAdapter<T, Translation>
+        'common/fix-mixed-langs' (str: string): string
+        'common/incremental-grab'<T> (options: IncrementalGrabOptions<T>): AsyncIterable<T>
+        'common/mapper-url2meta' (url: string): Promise<MapperMeta | null>
+        'services/vk-video'<T> (options: VkImporterOptions<T>): AsyncIterable<T>
+
+        // any other that were not covered before
+        [key: string]: any
+    }
+
+    /**
+     * Parser's own logging facility.
+     * In server environment, `debug` is replaced with a no-op.
+     * When running locally, they are equal.
+     * In server environment, they use parser's rootUid
+     * When running locally, all parsers use own uid.
+     *
+     * Lines only containing `ctx.debug(...)` will be removed when deploying
+     */
+    log: Debugger
+    debug: Debugger
+
+    /**
+     * A bunch of libraries that may be useful.
+     */
+    libs: typeof libs,
+
+
+    /**
+     * Statistics: to be called each time an item was processed
+     * (from source).
+     * Example: a single VK video was processed and yielded, then stat(1)
+     * Used to calculate importer efficiency.
+     *
+     * Local run only: call as stat(-1) to receive information and reset counter
+     * On server stat() always returns void
+     *
+     * @param n
+     */
+    stat (n?: number): void | number
+}
+
+
+export type CleanerContext = ParserContext<{
+    // no type here sry :c
+    // extends TypeORM BaseEntity bascially.
+    Translation: any
+}>

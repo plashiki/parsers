@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="h-100" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PlaShiki Parsers DevTools</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-2 h-100">
+<div class="container d-flex flex-column h-100" id="app">
+    <div class="row align-items-center">
+        <button @click="rpc('compile')" class="btn btn-outline-secondary">Compile</button>
+        <div class="flex-grow-1"></div>
+
+        <div v-if="connected === null">
+            Connecting...
+        </div>
+        <div v-if="connected === true">
+            Connected
+            <div class="text-center small mt-n2" v-if="running">Running...</div>
+        </div>
+        <div v-if="connected === false">
+            Disconnected (<a @click="connect" href="#">reconnect</a>)
+        </div>
+
+        <div class="flex-grow-1"></div>
+        <button @click="$refs.log.innerHTML = ''" class="btn btn-outline-secondary">Clear</button>
+    </div>
+    <hr class="w-100" />
+    <h6 class="text-secondary">Log</h6>
+    <div class="row flex-fill" style="min-height: 0;">
+        <div class="col-8 flex-column mh-100 overflow-auto">
+            <pre class="log mb-0 align-content-start h-100 flex-nowrap" ref="log"></pre>
+        </div>
+        <div class="col-4">
+            <div class="form-group">
+                <label for="parserName">Parser name</label>
+                <input class="form-control" id="parserName" v-model="parserName">
+            </div>
+            <button :disabled="running" @click="run" class="btn btn-outline-secondary">Run</button>
+            <button :disabled="!running" @click="rpc('stop')" class="btn btn-outline-secondary">Stop</button>
+            <button @click="create" class="btn btn-outline-secondary">Create</button>
+            <hr class="w-100" />
+            <div class="form-group">
+                <label for="commonInput">Input</label>
+                <textarea class="form-control" id="commonInput" style="min-height: 200px;" v-model="input"></textarea>
+            </div>
+            <div>
+                <button @click="action('anitomy')" class="btn btn-outline-secondary">Anitomy</button>
+                <button @click="action('names')" class="btn btn-outline-secondary">Names</button>
+                <button class="btn btn-outline-secondary">Action 3</button>
+                <button class="btn btn-outline-secondary">Action 4</button>
+                <button class="btn btn-outline-secondary">Action 5</button>
+            </div>
+            <p>
+                Links:
+                <a href="https://regex101.com/" target="_blank">regex101</a>,
+                <a href="https://tei.su/cheerio" target="_blank">cheerio repl</a>
+            </p>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ansi_up@4.0.4/ansi_up.min.js"></script>
+<script>
+// ok code here is shit because i KISS.
+// anyway its an internal thing so yeah...
+const ansiUp = new AnsiUp
+const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/g
+
+const app = new Vue({
+    el: '#app',
+    data: () => ({
+        ws: null,
+        connected: null,
+        parserName: '',
+        running: false,
+        input: '',
+    }),
+    methods: {
+        rpc (name, params) {
+            this.ws.send(JSON.stringify({
+                act: name,
+                params,
+            }))
+        },
+        run () {
+            localStorage.parserName = this.parserName
+            this.rpc('run', {
+                name: this.parserName,
+            })
+            this.running = true
+        },
+        create () {
+            this.rpc('create', {
+                name: this.parserName,
+            })
+        },
+        action (name) {
+            this.rpc('action', {
+                name,
+                text: this.input,
+            })
+        },
+        connect () {
+            let ws = this.ws = new WebSocket(`ws://${location.host}/ws`)
+            ws.onmessage = (evt) => {
+                let json
+                try {
+                    json = JSON.parse(evt.data)
+                } catch (e) {
+                    return
+                }
+
+                console.log(json)
+
+                if (json.act === 'log') {
+                    this.$refs.log.innerHTML += '<div class="log-line">'
+                        + ansiUp.ansi_to_html(json.params.str)
+                            .replace(/\n/g, '<br>')
+                            .replace(urlRegex, (_) => `<a href="${_}">${_}</a>`)
+                        + '</div>'
+                    // scroll to bottom
+                    this.$refs.log.scrollTop = this.$refs.log.scrollHeight
+                }
+
+                if (json.act === 'finished') {
+                    this.running = false
+                }
+            }
+            ws.onopen = () => {
+                this.connected = true
+            }
+            ws.onclose = () => {
+                this.connected = false
+            }
+        },
+    },
+    mounted () {
+        this.connect()
+        this.parserName = localStorage.parserName || ''
+    },
+})
+</script>
+</body>
+</html>

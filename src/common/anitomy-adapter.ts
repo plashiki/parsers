@@ -16,6 +16,11 @@ export interface AnitomyAdapterOptions<T> {
 
     target: (item: T) => string
 
+    /**
+     * If this function returns true, item will be skipped.
+     */
+    skip?: (item: T) => boolean | Promise<boolean>
+
     options?: AnitomyOptions
     lookup?: LookupOptions
 
@@ -30,6 +35,8 @@ export function entry (ctx: ParserContext): Function {
 
     return function <T> (options: AnitomyAdapterOptions<T>): ParserAdapter<T, Translation> {
         return async function (item: T): Promise<Translation[]> {
+            if (options.skip?.(item)) return []
+
             const targetString = options.target(item)
             let ret: Partial<Translation> = {
                 ...(await ctx.libs.resolveDynamicOptions(options.fallback || {}, item))

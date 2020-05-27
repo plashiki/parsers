@@ -46,6 +46,12 @@ export const libs = {
             defaultProtocol: 'https',
             forceHttps: true,
             normalizeProtocol: true,
+            removeQueryParameters: [
+                /^utm_\w+/i,
+                'api_hash',
+                '__ref',
+                ...(options?.removeQueryParameters ?? [])
+            ],
             // v better duplicate search
             sortQueryParameters: true,
             ...options

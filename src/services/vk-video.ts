@@ -89,6 +89,7 @@ export function entry (ctx: ParserContext): Function {
         while (backlog.length) {
             const item = backlog.pop()
             if (!item) break
+            if (!item.player) continue
 
             // provide common things
             item[urlSymbol] = ctx.libs.normalizeUrl(item.player)

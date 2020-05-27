@@ -36,7 +36,14 @@ export interface RegexAdapterOptions<T> {
         hq?: RegexFieldResolver<T, boolean>
         author: RegexFieldResolver<T, string>
         url?: RegexFieldResolver<T, string>
-    },
+    }
+
+    /**
+     * If this function returns true, item will be skipped and
+     * this regex won't me tested. Optional.
+     */
+    skip?: (item: T) => boolean | Promise<boolean>
+
     moreUrls?: ((item: T, translation: Translation) => string | string[] | Promise<string | string[]>)[]
 }
 
@@ -51,6 +58,8 @@ export function entry (ctx: ParserContext): Function {
             let ret: Translation[] = []
             let matched = false
             for (let [i, options] of ctx.libs.objectUtils.enumerate(optionsArray)) {
+                if (options.skip?.(item)) continue
+
                 const matchTarget = typeof options.target === 'string'
                     ? item[options.target]
                     : await (options.target as Function)(item)

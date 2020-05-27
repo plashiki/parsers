@@ -6,11 +6,10 @@ import { ParserContext } from '../types/ctx'
 import { compileModule } from './compiler'
 import fetch from 'node-fetch'
 
-export function getContextFor (mod: Module, params?: AnyKV, parent?: Module): ParserContext {
+export function getContextFor (mod: Module, params?: AnyKV, parent?: Module, rootCtx?: ParserContext): ParserContext {
     loadDependencies(mod)
-    let statCounter = 0
-
     const ctx: ParserContext = {
+        __stat: 0,
         env: 'local',
         params: params ?? {},
         libs,
@@ -20,13 +19,11 @@ export function getContextFor (mod: Module, params?: AnyKV, parent?: Module): Pa
         rootUid: (parent ?? mod).uid,
         uid: mod.uid,
 
-        stat (n = 1): void | number {
-            if (n === -1) {
-                let val = statCounter
-                statCounter = 0
-                return val
+        stat (n = 1): void {
+            if (rootCtx) {
+                rootCtx.__stat += n
             } else {
-                statCounter += n
+                ctx.__stat += n
             }
         }
     }
@@ -47,7 +44,7 @@ export function getContextFor (mod: Module, params?: AnyKV, parent?: Module): Pa
             })
         } else {
             Object.defineProperty(ctx.deps, uid, {
-                value: sub.entry!(getContextFor(sub, params, parent ?? mod)),
+                value: sub.entry!(getContextFor(sub, params, parent ?? mod, rootCtx ?? ctx)),
                 configurable: false,
                 enumerable: true
             })
@@ -88,10 +85,10 @@ export async function runImporter (uid: string): Promise<void> {
         translationsCount++
     }
 
-    let itemsCount = ctx.stat(-1)
+    let itemsCount = ctx.__stat
 
     DEBUG.system('==============================')
-    DEBUG.system('efficiency: %d/%d = %f', translationsCount, itemsCount,
+    DEBUG.system('%s efficiency: %d/%d = %f', uid, translationsCount, itemsCount,
         itemsCount === 0 ? 0 : translationsCount / itemsCount)
 }
 

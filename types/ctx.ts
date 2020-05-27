@@ -84,6 +84,8 @@ export interface ParserContext<P = AnyKV> {
      * @param n
      */
     stat (n?: number): void | number
+
+    __stat: number
 }
 
 

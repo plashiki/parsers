@@ -14,7 +14,6 @@ export function entry (ctx: ParserContext) {
                     part: m => m[2],
                     kind: 'sub',
                     lang: 'ru',
-                    hq: true,
                     author: 'лолечка'
                 }
             }

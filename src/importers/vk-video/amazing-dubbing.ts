@@ -14,7 +14,6 @@ export function entry (ctx: ParserContext) {
                     part: m => m[2],
                     kind: m => m[1] === '[Субтитры] ' ? 'sub' : 'dub',
                     lang: 'ru',
-                    hq: true,
                     author: 'Amazing Dubbing'
                 },
                 moreUrls: [

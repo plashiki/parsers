@@ -239,6 +239,8 @@ export function entry (ctx: ParserContext): Function {
         // normalize input
         names = names.map(i =>
             i!.toLowerCase()
+                // special symbols inside words
+                .replace(/(\S)[«»'"‘’“”„「」『』《》〈〉()\[\]{}<>\-_⁓‐‑‒–—―`~!@#$%^&*;:.,\/\\?|](\S)/g, (_, $1, $2) => $1 + ' ' + $2)
                 // special symbols
                 .replace(/[«»'"‘’“”„「」『』《》〈〉()\[\]{}<>\-_⁓‐‑‒–—―`~!@#$%^&*;:.,\/\\?|]/g, '')
                 // multiple and non-space whitespaces

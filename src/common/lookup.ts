@@ -136,7 +136,7 @@ export function entry (ctx: ParserContext): Function {
             headers: {
                 'X-MAL-Client-ID': '6114d00ca681b7701d1e15fe11a4987e'
             }
-        }).then(i => i.json()).then(i => i.data)
+        }).then(i => i.json()).then(i => i.data || [])
     }
 
     function anime365Search (mediaType: MediaType, name: string): Promise<any[]> {
@@ -147,7 +147,7 @@ export function entry (ctx: ParserContext): Function {
             limit: 15
         })).then(i => i.json()).then(i => {
             if (i.error) return []
-            return i.data
+            return i.data || []
         })
     }
 

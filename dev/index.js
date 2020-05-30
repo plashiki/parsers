@@ -213,6 +213,23 @@ app.get('/ws', (req, res) => {
                                 }).join('\n'))
                             })
                     }
+
+                    m = text.match(/^(?:https:\/\/)?(?:www\.)?myvi\.(?:top|tv|xyz)\/(.+?)(?:[\/?#]|$)/im)
+                    if (m) {
+                        const [, owner] = m
+                        m = text.match(/count=(\d+)/)
+                        let count = Math.min(200, m ? parseInt(m[1]) : 50)
+                        return fetch(`https://api.myvi.tv/api/1.0/videos/${owner}/channel?host=www.myvi.tv&size=${count}&sort=desc`)
+                            .then(i => {
+                                if (i.status !== 200) debug('http %d', i.status)
+
+                                return i.json()
+                            })
+                            .then((json) => {
+                                debug('%s video names:', owner)
+                                console.log(json.elements.map(it => it.title).join('\n'))
+                            })
+                    }
                     debug('Unknown URL')
                 }
             }

@@ -7,6 +7,7 @@ import { AnitomyAdapterOptions } from '../src/common/anitomy-adapter'
 import { IncrementalGrabOptions } from '../src/common/incremental-grab'
 import { MapperMeta } from '../src/common/mapper-url2meta'
 import { SibnetImporterOptions } from '../src/services/sibnet'
+import { MyviImporterOptions } from '../src/services/myvi'
 
 export interface ParserContext<P = AnyKV> {
     /**
@@ -51,6 +52,7 @@ export interface ParserContext<P = AnyKV> {
         'common/mapper-url2meta' (url: string): Promise<MapperMeta | null>
         'services/vk-video'<T> (options: VkImporterOptions<T>): AsyncIterable<T>
         'services/sibnet'<T> (options: SibnetImporterOptions<T>): AsyncIterable<T>
+        'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>
 
         // any other that were not covered before
         [key: string]: any

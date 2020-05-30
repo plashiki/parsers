@@ -17,11 +17,13 @@ export interface MyviVideo {
     url: string
 
     __cachedDescription?: string
+
     getDescription (): Promise<string>
 }
 
 export interface MyviImporterOptions<T> {
     owner: string
+    host?: string
 
     adapter: ParserAdapter<MyviVideo, T>
 }
@@ -37,7 +39,7 @@ export function entry (ctx: ParserContext): Function {
 
         while (true) {
             const json = await ctx.libs.fetch(
-                `https://api.myvi.tv/api/1.0/videos/${options.owner}/channel?host=www.myvi.top&size=10000&sort=asc&d=${lastSaved}`,
+                `https://api.myvi.tv/api/1.0/videos/${options.owner}/channel?host=${options.host ?? 'www.myvi.tv'}&size=10000&sort=asc&d=${lastSaved}`,
                 {
                     headers: {
                         accept: 'application/json'
@@ -57,7 +59,9 @@ export function entry (ctx: ParserContext): Function {
                 vid.getDescription = async () => {
                     if (vid.__cachedDescription != undefined) return vid.__cachedDescription
 
-                    return ctx.libs.fetch(`https://api.myvi.tv/api/1.0/channel/${options.owner}/detail`)
+                    return ctx.libs.fetch(
+                        `https://api.myvi.tv/api/1.0/channel/${options.owner}/detail?video_id=${vid.id}&featured_size=0&host=${options.host ?? 'www.myvi.tv'}`
+                    )
                         .then(i => i.json())
                         .then(json => {
                             let description = json.featured[0]?.description ?? ''

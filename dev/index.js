@@ -191,7 +191,7 @@ app.get('/ws', (req, res) => {
                         }).catch(console.error)
                     }
 
-                    m = text.match(/^(?:https:\/\/)?video\.sibnet\.ru\/users\/(.+?)(?:[\/?#]|$)/i)
+                    m = text.match(/^(?:https:\/\/)?video\.sibnet\.ru\/users\/(.+?)(?:[\/?#]|$)/im)
                     if (m) {
                         const [, owner] = m
                         m = text.match(/page=(\d+)/)

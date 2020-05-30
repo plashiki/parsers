@@ -48,19 +48,26 @@ export function entry (ctx: ParserContext): Function {
                 const realPage = parseInt($('.multipagesnavig>b:nth-of-type(2)').text())
                 if (realPage !== page) break
 
-                const items = $('.video_cell>.preview>a').toArray()
+                const videos = $('.video_cell').toArray()
 
-                if (items.length === 0) {
+                if (videos.length === 0) {
                     break
                 }
 
-                for (let it of items) {
-                    let titleParts = it.attribs.title.split(' - ')
+                for (let node of videos) {
+                    let it = $(node)
+                    let title = it.find('.preview>a[href^="/video"]').attr('title')
+                    if (title == null) continue
+                    let href = it.find('.preview>a[href^="/video"]').attr('href')
+                    let alb = ' - ' + it.find('.text a[href^="/alb"]').text().replace(/\s*\.{3}$/, '')
+
+                    let titleParts = title.split(alb)
                     titleParts.pop()
-                    const title = titleParts.join(' - ')
-                    const m = it.attribs.href.match(/\/video(\d+)(?:[\-?#]|$)/i)
+                    title = titleParts.join(alb)
+
+                    const m = href?.match(/\/video(\d+)(?:[\-?#]|$)/i)
                     if (!m) {
-                        ctx.log('failed to parse ID, url: %s', it.attribs.href)
+                        ctx.log('failed to parse ID, url: %s', href)
                         continue
                     }
                     const id = parseInt(m[1])
@@ -81,7 +88,7 @@ export function entry (ctx: ParserContext): Function {
                                 if (item.__cachedDescription !== null) {
                                     return item.__cachedDescription
                                 }
-                                return ctx.libs.fetch(it.attribs.href)
+                                return ctx.libs.fetch(href!)
                                     .then(i => i.buffer())
                                     .then((buf) => {
                                         const html = ctx.libs.iconv.decode(buf, 'win1251')

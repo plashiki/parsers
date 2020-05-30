@@ -7,7 +7,7 @@ export function entry (ctx: ParserContext) {
         owner: 'AniFilmTV',
         adapter: ctx.deps['common/regex-adapter']([
             {
-                regex: /^(\d+) - (.+?)(?:\.{3})?(?: \/ (.+?))? \| anifilm/i,
+                regex: /^(\d+) - (.+?)(?:\.{3})?(?: \/ (.+?))?(?: \| anifilm|$)/i,
                 target: v => v.title,
                 fields: {
                     target: m => [m[2], m[3]],

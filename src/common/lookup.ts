@@ -180,8 +180,8 @@ export function entry (ctx: ParserContext): Function {
                     }
 
                 if (maxSimilarityItem && maxSimilarity > threshold) {
-                    ctx.debug('shikimori found %s for names %o (similarity: %d)',
-                        options.getPrimaryName(maxSimilarityItem), names, maxSimilarity)
+                    ctx.debug('%s found %s for names %o (similarity: %d)',
+                        options.name, options.getPrimaryName(maxSimilarityItem), names, maxSimilarity)
                     const id = await options.getId(maxSimilarityItem, data)
                     if (id === null) {
                         return null

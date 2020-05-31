@@ -46,7 +46,7 @@ export function entry (ctx: ParserContext): Function {
                 const $ = ctx.libs.cheerio.load(html)
 
                 const realPage = parseInt($('.multipagesnavig>b:nth-of-type(2)').text())
-                if (realPage !== page) break
+                if (!isNaN(realPage) && realPage !== page) break
 
                 const videos = $('.video_cell').toArray()
 

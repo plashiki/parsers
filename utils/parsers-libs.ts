@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio'
-import fetch from 'node-fetch'
+import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
 import * as objectUtils from './object-utils'
 import FormData from 'form-data'
 import * as iconv from 'iconv-lite'
@@ -15,10 +15,27 @@ import normalizeUrl from 'normalize-url'
 import { DynamicOptions } from '../types'
 import { RelationsParser } from '../engine/relations'
 
+let httpAgent = undefined
+if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    httpAgent = new (require('simple-proxy-agent'))(process.env.FETCH_PROXY)
+}
+
+
 
 export const libs = {
     cheerio,
-    fetch,
+    fetch(
+        url: RequestInfo,
+        init?: RequestInit
+    ): Promise<Response> {
+        if (httpAgent) {
+            if (!init) init = {}
+            init.agent = httpAgent
+        }
+
+        return fetch(url, init)
+    },
     fuzz,
     objectUtils,
     FormData,

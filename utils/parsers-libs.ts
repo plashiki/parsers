@@ -12,8 +12,9 @@ import * as anitomy from '@teidesu/anitomy-js'
 import * as fuzz from 'fuzzball'
 import KeyValue from './key-value'
 import normalizeUrl from 'normalize-url'
-import { DynamicOptions } from '../types'
+import { DynamicOptions, ExternalServiceMappings, MediaType } from '../types'
 import { RelationsParser } from '../engine/relations'
+import { DEBUG } from './debug'
 
 let httpAgent = undefined
 if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {
@@ -50,6 +51,15 @@ export const libs = {
     PB,
     anitomy,
     relations: RelationsParser.loadFromFile('relations.json'),
+    mappings: {
+        // stub
+        async extend (type: MediaType, mapping: ExternalServiceMappings): Promise<void> {
+            DEBUG.system('Mapping.extend (%s) %o', type, mapping)
+        },
+        async findFull (type: MediaType, mapping: ExternalServiceMappings): Promise<MediaType | null> {
+            return null
+        }
+    },
 
     // when running locally there's a file-based stub,
     // so dont use typeorm api as it wont be available

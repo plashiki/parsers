@@ -22,7 +22,10 @@ export type TranslationKind = 'sub' | 'dub' | 'scan' | 'off' | 'raw'
 export type MediaType = 'anime' | 'manga'
 
 export interface Translation {
-    target_id: number
+    target_id: number | {
+        service: ExternalService
+        id: string | number
+    }
     target_type: MediaType
     part: number
 
@@ -32,6 +35,12 @@ export interface Translation {
     author: string
 
     url: string
+}
+
+export interface Mapping {
+    id: number
+    type: MediaType
+    external: ExternalServiceMappings
 }
 
 export interface MediaMeta {

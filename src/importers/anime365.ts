@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation } from '../../types'
+import { ExternalService, ExternalServiceMappings, Translation } from '../../types'
 
 export const provide = ['common/lookup']
 
@@ -36,8 +36,31 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (!notIgnored[tr.episode.episodeType]) continue
             if (!(tr.typeKind in kinds)) continue
 
-            yield {
-                target_id: tr.series.myAnimeListId,
+            let mapping: ExternalServiceMappings = {}
+            if (tr.series.myAnimeListId > 0) {
+                mapping.mal = tr.series.myAnimeListId
+            }
+            if (tr.series.aniDbId > 0) {
+                mapping.anidb = tr.series.aniDbId
+            }
+            if (tr.series.animeNewsNetworkId > 0) {
+                mapping.ann = tr.series.animeNewsNetworkId
+            }
+            if (tr.series.fansubsId > 0) {
+                mapping.fansubs = tr.series.fansubsId
+            }
+            if (tr.series.imdbId > 0) {
+                mapping.imdb = tr.series.imdbId
+            }
+            if (tr.series.worldArtId > 0) {
+                mapping.worldart = tr.series.worldArtId
+            }
+
+            await ctx.libs.mappings.extend('anime', mapping)
+
+
+            let ret: Translation = {
+                target_id: mapping.mal as any,
                 target_type: 'anime',
                 part: Math.floor(parseFloat(tr.episode.episodeInt)),
                 kind: kinds[tr.typeKind],
@@ -46,6 +69,16 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 author: tr.authorsSummary.trim(),
                 url: tr.embedUrl
             }
+
+            if (!ret.target_id) {
+                let [service, id] = Object.entries(mapping)[0]
+                ret.target_id = {
+                    service: service as ExternalService,
+                    id: id!
+                }
+            }
+
+            yield ret
 
             lastSaved = tr.id
             await ctx.libs.kv.set('a365-ls', lastSaved)

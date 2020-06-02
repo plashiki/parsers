@@ -24,7 +24,8 @@ export function entry (ctx: ParserContext): Function {
         [/^(?:https?:)?\/\/(?:www\.)?fansubs.ru\/base\.php\?id=(\d+)/i, 'fansubs', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?kinopoisk\.ru\/film\/(\d+)/i, 'kp', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?mangaupdates.com\/series\.html\?id=(\d+)/i, 'mangaupdates', 'manga', 1],
-        [/^(?:https?:)?\/\/(?:www\.)?thetvdb\.com\/\?tab=series&id=(\d+)/i, 'thetvdb', 'anime', 1]
+        [/^(?:https?:)?\/\/(?:www\.)?thetvdb\.com\/\?tab=series&id=(\d+)/i, 'thetvdb', 'anime', 1],
+        [/^(?:https?:)?\/\/(?:www\.)imdb\.com\/title\/tt(\d+)/, 'imdb', 'anime', 1]
     ]
 
     return async function (url: string): Promise<MapperMeta | null> {

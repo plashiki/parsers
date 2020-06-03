@@ -22,6 +22,7 @@ export interface Module {
     compile?: StringKV
     provide?: string[]
     disabled?: boolean
+    public_?: string
     cri?: boolean
     entry?: Function
 

@@ -61,7 +61,8 @@ async function main () {
                     disabled: mod.disabled ?? false,
                     cri: mod.cri ?? false,
                     code: mod.compiled,
-                    source: mod.source?.toString('utf-8')
+                    source: mod.source?.toString('utf-8'),
+                    public: mod.public_ ?? ''
                 })),
                 delete: deleted
             })

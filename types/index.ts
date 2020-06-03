@@ -119,3 +119,23 @@ export interface MapperResult {
     mappings: ExternalServiceMappings
     type: string // MediaType
 }
+
+export interface PlayerPayload {
+    video: PlayerSource | PlayerSource[]
+    subtitles?: {
+        src: string
+        options?: AnyKV
+        srcType?: 'url' | 'text'
+    }
+}
+
+export interface PlayerSource {
+    height?: number
+    name?: string
+    type?: string            // MIME type of video. Used to determine player.
+                             // If none is passed then 'video/mp4' is implied
+    src?: string             // Single url to video. Alias for `urls: <src>`
+    urls?: string | string[] // Url to video or array of urls.
+                             // If array is passed then videos will be
+                             // concatenated. Has higher priority than `src`
+}

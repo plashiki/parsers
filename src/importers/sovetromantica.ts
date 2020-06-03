@@ -1,8 +1,6 @@
 import { ParserContext } from '../../types/ctx'
 import { Translation } from '../../types'
 
-export const provide = ['common/lookup']
-
 interface SrTranslation {
     // this api is so bad.
 

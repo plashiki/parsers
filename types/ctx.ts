@@ -75,6 +75,20 @@ export interface ParserContext<P = AnyKV> {
      */
     libs: typeof libs,
 
+    /**
+     * For parsers designed to be run externally:
+     * indicate that return value should not be enclosed in JSON envelope
+     */
+    raw?: true
+
+    /**
+     * For parsers designed to be run externally:
+     * headers for http response
+     */
+    headers?: Record<string, string>
+
+
+
 
     /**
      * Statistics: to be called each time an item was processed

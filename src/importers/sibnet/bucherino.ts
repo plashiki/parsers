@@ -15,7 +15,7 @@ export function entry (ctx: ParserContext) {
                     part: m => m[3],
                     kind: 'dub',
                     lang: 'ru',
-                    author: ''
+                    author: 'AniDub'
                 }
             },
             {

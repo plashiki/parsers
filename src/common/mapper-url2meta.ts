@@ -17,11 +17,13 @@ export function entry (ctx: ParserContext): Function {
     const urlRules: UrlRule[] = [
         [/^(?:https?:)?\/\/(?:www\.)?animenewsnetwork\.com\/encyclopedia\/anime\.php\?id=(\d+)/i, 'ann', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?animenewsnetwork\.com\/encyclopedia\/manga\.php\?id=(\d+)/i, 'ann', 'manga', 1],
-        [/^(?:https?:)?\/\/(?:www\.)?anidb\.net\/(?:perl-bin\/animedb\.pl\?show=anime&aid=|anime\/)(\d+)/i, 'anidb', 'anime', 1],
+        [/^(?:https?:)?\/\/(?:www\.)?anidb\.(?:net|info)\/(?:perl-bin\/animedb\.pl\?show=anime&aid=|anime\/)(\d+)/i, 'anidb', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?myanimelist\.net\/anime\/(\d+)/i, 'mal', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?myanimelist\.net\/manga\/(\d+)/i, 'mal', 'manga', 1],
         [/^(?:https?:)?\/\/(?:www\.)?allcinema\.net\/cinema\/(\d+)/i, 'allcinema', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?fansubs.ru\/base\.php\?id=(\d+)/i, 'fansubs', 'anime', 1],
+        [/^(?:https?:)?\/\/(?:www\.)?world-art.ru\/animation\/animation\.php\?id=(\d+)/i, 'worldart', 'anime', 1],
+        [/^(?:https?:)?\/\/(?:www\.)?world-art.ru\/animation\/manga\.php\?id=(\d+)/i, 'worldart', 'manga', 1],
         [/^(?:https?:)?\/\/(?:www\.)?kinopoisk\.ru\/film\/(\d+)/i, 'kp', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?mangaupdates.com\/series\.html\?id=(\d+)/i, 'mangaupdates', 'manga', 1],
         [/^(?:https?:)?\/\/(?:www\.)?thetvdb\.com\/\?tab=series&id=(\d+)/i, 'thetvdb', 'anime', 1],
@@ -54,6 +56,8 @@ export function entry (ctx: ParserContext): Function {
                 type: 'anime'
             }
         }
+
+        ctx.log('failed to map url: %s', url)
 
         return null
     }

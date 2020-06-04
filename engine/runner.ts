@@ -93,7 +93,8 @@ export async function runImporter (uid: string): Promise<void> {
 }
 
 export async function runMapper (uid: string): Promise<void> {
-    for await (let trans of executeParser(uid)) {
+    let [, res] = executeParser(uid)
+    for await (let trans of res) {
         DEBUG.system('item: %o', trans)
     }
 }

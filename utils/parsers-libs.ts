@@ -3,6 +3,7 @@ import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch'
 import * as objectUtils from './object-utils'
 import FormData from 'form-data'
 import * as iconv from 'iconv-lite'
+import * as vm from 'vm'
 import WebSocket from 'ws'
 import * as qs from 'querystring'
 import * as crypto from 'crypto'
@@ -37,6 +38,7 @@ export const libs = {
 
         return fetch(url, init)
     },
+    vm,
     fuzz,
     objectUtils,
     FormData,

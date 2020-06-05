@@ -6,7 +6,7 @@ import * as iconv from 'iconv-lite'
 import WebSocket from 'ws'
 import * as qs from 'querystring'
 import * as crypto from 'crypto'
-import type { JSDOM } from 'jsdom'
+import type JSDOM from 'jsdom'
 import PB from 'protoflex'
 import * as anitomy from '@teidesu/anitomy-js'
 import * as fuzz from 'fuzzball'
@@ -44,7 +44,7 @@ export const libs = {
     WebSocket,
     qs,
     crypto,
-    get JSDOM (): JSDOM {
+    get JSDOM (): typeof JSDOM {
         // this boi is fat af
         return require('jsdom')
     },

@@ -21,6 +21,7 @@ export function entry (ctx: ParserContext): Function {
         [/^(?:https?:)?\/\/(?:www\.)?myanimelist\.net\/anime\/(\d+)/i, 'mal', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?myanimelist\.net\/manga\/(\d+)/i, 'mal', 'manga', 1],
         [/^(?:https?:)?\/\/(?:www\.)?allcinema\.net\/cinema\/(\d+)/i, 'allcinema', 'anime', 1],
+        [/^(?:https?:)?\/\/(?:www\.)?allcinema\.net\/prog\/show_c\.php\?num_c=(\d+)/i, 'allcinema', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?fansubs.ru\/base\.php\?id=(\d+)/i, 'fansubs', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?world-art.ru\/animation\/animation\.php\?id=(\d+)/i, 'worldart', 'anime', 1],
         [/^(?:https?:)?\/\/(?:www\.)?world-art.ru\/animation\/manga\.php\?id=(\d+)/i, 'worldart', 'manga', 1],

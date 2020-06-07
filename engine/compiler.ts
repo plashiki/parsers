@@ -57,6 +57,8 @@ export function compileModule (mod: Module): string {
         .replace(/^\s*ctx\.debug\(.*\);?\s*$/gm, '')
         // replace process.env
         .replace(/process\.env\.([A-Z0-9_]+)/g, (_, $1) => {
+            if ($1 === 'PRODUCTION') return 'true'
+
             if ($1 in process.env) {
                 return JSON.stringify(process.env[$1])
             }

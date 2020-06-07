@@ -147,6 +147,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     // bruh moment
                     continue
                 }
+            } else {
+                target_id = result.id
             }
         }
 
@@ -171,7 +173,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         // determine hq, kind and author
         let hq = !!it.quality.match(/bd|hd|1080p|720p/i)
         let kind = 'dub' as TranslationKind
-        let author = it.translation.title
+        let author = it.translation.title.trim()
         if (author === 'Субтитры') {
             kind = 'sub'
             author = ''

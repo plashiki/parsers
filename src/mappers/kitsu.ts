@@ -92,6 +92,12 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
             ctx.log('confusing site: %s', mapping.attributes.externalSite)
         }
 
+        let externalId = mapping.attributes.externalId
+
+        if (site === 'anilist' && externalId.includes('/')) {
+            externalId = externalId.split('/')[1]
+        }
+
         if (aliases[site]) {
             site = aliases[site]
         } else {
@@ -103,7 +109,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
             type,
             mappings: {
                 kitsu: mapping.relationships.item.data.id,
-                [site]: mapping.attributes.externalId
+                [site]: externalId
             }
         }
 

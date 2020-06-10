@@ -23,6 +23,7 @@ export interface Module {
     provide?: string[]
     disabled?: boolean
     public_?: string
+    ready?: boolean
     cri?: boolean
     entry?: Function
 
@@ -89,7 +90,7 @@ export function getAllModules (): Module[] {
             // replace windows separator \ with unix /
             .replace(/\\/g, '/')
         const mod = loadModule(modName)
-        if (mod) {
+        if (mod && mod.ready !== false) {
             ret.push(mod)
         }
     }

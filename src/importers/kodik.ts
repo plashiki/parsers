@@ -167,7 +167,11 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             map.worldart = it.worldart_link.split('id=')[1]
         }
         if (Object.keys(map).length > 1) {
-            await ctx.libs.mappings.extend('anime', map)
+            try {
+                await ctx.libs.mappings.extend('anime', map)
+            } catch (e) {
+                ctx.log('conflict mapping: %o', map)
+            }
         }
 
         // determine hq, kind and author

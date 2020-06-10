@@ -56,7 +56,11 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 mapping.worldart = tr.series.worldArtId
             }
 
-            await ctx.libs.mappings.extend('anime', mapping)
+            try {
+                await ctx.libs.mappings.extend('anime', mapping)
+            } catch (e) {
+                ctx.log('conflict mapping: %o', mapping)
+            }
 
 
             let ret: Translation = {

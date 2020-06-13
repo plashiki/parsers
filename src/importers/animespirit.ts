@@ -62,7 +62,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         const title = $('#dle-content .content-block-title').text().trim()
         const secondaryTitle = $('#dle-content td>b>h3').text().trim()
         const target = await ctx.deps['common/lookup']({
-            names: [secondaryTitle, title]
+            names: [secondaryTitle, title],
+            preferredSearch: 'anime365'
         })
         if (!target) {
             ctx.debug('lookup failed: %s %s', secondaryTitle, title)

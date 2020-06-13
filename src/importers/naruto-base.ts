@@ -94,7 +94,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         let part = parseInt(m[2])
         let names = [m[1], m[3] || m[4]]
         const target = await ctx.deps['common/lookup']({
-            names
+            names,
+            preferredSearch: 'anime365'
         })
         if (!target) return
 

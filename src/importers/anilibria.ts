@@ -99,7 +99,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         if (!rel) break
 
         let media = await ctx.deps['common/lookup']({
-            names: rel.names
+            names: rel.names,
+            preferredSearch: 'anime365'
         })
         if (!media) continue
         let common = {

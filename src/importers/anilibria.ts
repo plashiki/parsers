@@ -119,32 +119,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (ep.id > maxEpisode) maxEpisode = ep.id
             if (ep.id <= lastSavedEpisode) continue
 
-            let payload: PlayerPayload = {
-                video: [
-                    {
-                        src: ep.sd,
-                        type: 'application/vnd.apple.mpegurl',
-                        height: 480
-                    },
-                    {
-                        src: ep.hd,
-                        type: 'application/vnd.apple.mpegurl',
-                        height: 720
-                    }
-                ]
-            }
-            if (ep.fullhd) {
-                (payload.video as PlayerSource[]).push({
-                    src: ep.fullhd,
-                    type: 'application/vnd.apple.mpegurl',
-                    height: 1080
-                })
-            }
-
             yield {
                 ...common,
                 part: ep.id,
-                url: 'https://plashiki.su/player?p=' + encodeURIComponent(JSON.stringify(payload))
+                url: `https://plashiki.su/player/anilibria?rid=${rel.id}&eid=${ep.id}`
             }
         }
 

@@ -290,7 +290,7 @@ export function entry (ctx: ParserContext): Function {
         names = names.map(i => normalizeString(i!))
 
 
-        let queue = ['shikimori', 'anime365', 'kitsu', 'mal', 'anilist']
+        let queue = ['anime365', 'shikimori', 'kitsu', 'mal', 'anilist']
         if (options.preferredSearch) {
             if (Array.isArray(options.preferredSearch)) {
                 queue = options.preferredSearch

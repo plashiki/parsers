@@ -34,7 +34,7 @@ export function entry (ctx: ParserContext): Function {
     return async function * <T> (options: MyviImporterOptions<T>): AsyncIterable<T> {
         // mv-ls = myvi, last saved
         const storage = `mv-ls:${ctx.rootUid}`
-        const lastSaved = await ctx.libs.kv.get(storage, 0)
+        let lastSaved = await ctx.libs.kv.get(storage, 0)
         ctx.debug('lastSaved = %d', lastSaved)
 
         while (true) {
@@ -53,6 +53,7 @@ export function entry (ctx: ParserContext): Function {
 
             const items = json.elements as MyviVideo[]
             if (items.length === 0) break
+            items.sort((a, b) => a.createDate - b.createDate)
 
             for (let vid of items) {
                 vid[urlSymbol] = 'https://myvi.top/embed/' + vid.id
@@ -75,6 +76,7 @@ export function entry (ctx: ParserContext): Function {
                 yield * ret
                 ctx.stat()
 
+                lastSaved = vid.createDate
                 await ctx.libs.kv.set(storage, vid.createDate)
             }
 

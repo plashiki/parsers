@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { PlayerPayload, PlayerSource, Translation } from '../../types'
+import { Translation } from '../../types'
 
 export const provide = ['common/lookup']
 
@@ -134,10 +134,12 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 yield {
                     ...common,
                     part: i,
-                    url: `${rel.moon}?season=1&episode=${i}&only_episode=true`
+                    url: `${rel.moon}${rel.moon.includes('?') ? '&': '?'}season=1&episode=${i}&only_episode=true`
                 }
             }
         }
+
+        ctx.stat()
 
         await ctx.libs.kv.set('al-ls', parseInt(rel.last))
         await ctx.libs.kv.set(`al-ls:${rel.id}`, maxEpisode)

@@ -322,7 +322,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     return date.toISOString()
                 })
 
-                if (updatedAt) {
+                if (!updatedAt) {
                     ctx.log('no last-modified header at %s', url)
                     continue
                 }

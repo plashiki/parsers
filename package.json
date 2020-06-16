@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "@teidesu/anitomy-js": "^4.1.2",
+        "abort-controller": "^3.0.0",
         "cheerio": "^1.0.0-rc.3",
         "debug": "^4.1.1",
         "dotenv": "^8.2.0",
@@ -50,13 +51,14 @@
         "@types/ws": "^7.2.4",
         "@typescript-eslint/eslint-plugin": "^2.11.0",
         "@typescript-eslint/parser": "^2.11.0",
+        "abort-controller": "^3.0.0",
         "babel-preset-minify": "^0.5.1",
-        "simple-proxy-agent": "^1.0.7",
         "chai": "^4.2.0",
         "eslint": "^6.8.0",
         "express": "^4.17.1",
         "mocha": "^7.1.2",
         "sass": "^1.26.5",
+        "simple-proxy-agent": "^1.0.7",
         "ts-node": "^8.9.1",
         "uglify-js": "^3.9.2"
     },

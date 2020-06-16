@@ -11,8 +11,8 @@ interface NarutoBaseMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    // 2011-04-23-771 is the first post which had inline player and since then there was somewhat stable naming
-    let lastSaved = await ctx.libs.kv.get('nb-ls', '2011-04-22-770')
+    // older post mostly have dead players
+    let lastSaved = await ctx.libs.kv.get('nb-ls', '2016-01-01-0')
     let deferred = await ctx.libs.kv.get<string[]>('nb-def', [])
 
     ctx.debug('lastSaved = %s, %d deferred', lastSaved, deferred.length)
@@ -23,7 +23,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         3: "https://myvi.ru/player/embed/html/$$",
         4: "https://video.sibnet.ru/shell.php?videoid=$$",
         5: "https://vk.com/video_ext.php?oid=$$",
-        6: "http://api.video.mail.ru/videos/embed/mail/$$.html",
+        6: "https://api.video.mail.ru/videos/embed/mail/$$.html",
         7: "https://vio.to/video/serials/$$",
         8: "https://www.wakanim.tv/ru/v2/catalogue/embeddedplayer/$$",
         9: "https://ebd.cda.pl/620x395/$$?wersja=720p",

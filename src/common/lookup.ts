@@ -157,29 +157,42 @@ export function entry (ctx: ParserContext): Function {
                 const data = await options.search(mediaType, name)
                 const iter = options.getIterable(data)
 
+                let totalThreshold = 0
                 let maxSimilarity = 0
                 let maxSimilarityItem: V | null = null
 
                 itemsLoop:
                     for (let it of iter) {
                         let itNames = options.getNames(it)
+                        let totalSimilarity = 0
 
                         for (let itName of itNames) {
                             for (let n of names) {
                                 let sim = ctx.libs.fuzz.ratio(normalizeString(itName), n, { full_process: false })
-                                if (sim > maxSimilarity) {
-                                    maxSimilarity = sim
-                                    maxSimilarityItem = it
-                                }
                                 if (sim === 100) {
                                     // full match, immediately proceed
+                                    maxSimilarityItem = it
+                                    maxSimilarity = Infinity
+
                                     break itemsLoop
                                 }
+
+                                if (sim > threshold) {
+                                    totalSimilarity += sim
+                                }
+
+                                totalThreshold += threshold
                             }
+                        }
+
+
+                        if (totalSimilarity > maxSimilarity) {
+                            maxSimilarity = totalSimilarity
+                            maxSimilarityItem = it
                         }
                     }
 
-                if (maxSimilarityItem && maxSimilarity > threshold) {
+                if (maxSimilarityItem && maxSimilarity > totalThreshold) {
                     ctx.debug('%s found %s for names %o (similarity: %d)',
                         options.name, options.getPrimaryName(maxSimilarityItem), names, maxSimilarity)
                     const id = await options.getId(maxSimilarityItem, data)

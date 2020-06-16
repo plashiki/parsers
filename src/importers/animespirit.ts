@@ -210,6 +210,9 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 }
 
                 if (episode <= lastSavedEpisode) continue
+                if (episode > maxEpisode) {
+                    maxEpisode = episode
+                }
 
                 if (path.length === 2) {
                     author = path[0]

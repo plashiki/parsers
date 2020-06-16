@@ -27,7 +27,9 @@ export function entry (ctx: ParserContext): Function {
 
     let isWhitespace = s => s.match(/\s/)
 
-    function normalizeString (s) {
+    function normalizeString (s: string): string {
+        if (!s) return ''
+
         let prevWhitespace = false
         let ret = ''
         const lastIndex = s.length - 1

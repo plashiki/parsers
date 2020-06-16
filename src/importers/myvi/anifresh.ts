@@ -7,7 +7,7 @@ export function entry (ctx: ParserContext) {
         owner: 'idteyo',
         adapter: ctx.deps['common/regex-adapter']([
             {
-                regex: /^(.+?) (\d+)(?: \/ (.+) \2)? (?:Озв\.|Рус\.? озвучка)\s*(.*)\s*$/i,
+                regex: /^(.+?) (\d+)(?: \/ (.+) \2)? (?:Озв\.|Рус\.? озвучка)?\s*(.*)\s*$/i,
                 target: v => v.title,
                 fields: {
                     target: m => [m[1], m[3]],

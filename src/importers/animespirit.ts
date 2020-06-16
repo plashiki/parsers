@@ -312,8 +312,17 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 const updatedAt = await ctx.libs.fetch(url, {
                     method: 'HEAD'
-                }).then(i => i.headers.get('last-modified'))
-                if (!updatedAt) {
+                }).then(i => {
+                    let date = new Date(i.headers.get('last-modified') || '')
+
+                    if (isNaN(date as any)) {
+                        return ''
+                    }
+
+                    return date.toISOString()
+                })
+
+                if (updatedAt) {
                     ctx.log('no last-modified header at %s', url)
                     continue
                 }

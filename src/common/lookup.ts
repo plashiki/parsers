@@ -113,7 +113,7 @@ export function entry (ctx: ParserContext): Function {
             if (i.status === 429) {
                 return ctx.libs.sleep(parseInt(i.headers['retry-after']) * 1000).then(() => anilistSearch(mediaType, name))
             }
-            return i.json().then(i => i.data.Page.media)
+            return i.json().then(i => i?.data?.Page?.media ?? [])
         })
     }
 

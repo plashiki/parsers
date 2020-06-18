@@ -16,6 +16,8 @@ interface LookupFactoryOptions<T, V> {
 }
 
 export function entry (ctx: ParserContext): Function {
+    const CONFLICTING_RESULT = Symbol('CONFLICTING_RESULT')
+
     const threshold = parseInt(process.env.FUZZY_THRESHOLD!)
     let mkIndex = (s: string): Record<string, 1> => s.split('').reduce((a, b) => {
         a[b] = 1
@@ -23,7 +25,7 @@ export function entry (ctx: ParserContext): Function {
     }, {})
     let removeChars = mkIndex('«»\'"‘’“”„「」『』《》〈〉()\\[\\]{}<>-_⁓‐‑‒–—―`~!@#$%^&*;:.,\\/?|')
     let canLeaveInMiddle = mkIndex('⁓‐‑‒–—―.,;/\\$_-')
-    let canLeaveOnEnd = mkIndex('!?\'')
+    let canLeaveOnEnd = mkIndex('!?\'.;*')
 
     let isWhitespace = s => s.match(/\s/)
 
@@ -67,7 +69,16 @@ export function entry (ctx: ParserContext): Function {
             prevWhitespace = isWhitespace(c)
         }
 
-        return ret.trim()
+        return ret
+            .replace(/oad/gi, 'ova')
+            .replace(/(\d+)'?\s*(?:nd|th|st)?\s*season/i, (_, $1) => $1)
+            .replace(/\s*сезон/gi, '')
+            .replace(/(?:tv|тв)(?:[\-_⁓‐‑‒–—―]|\s*)1/gi, '')
+            .replace(/(?:tv|тв)(?:[\-_⁓‐‑‒–—―]|\s*)(\d+)/gi, (_, $1) => $1)
+            .replace(/продолжение|дважды/gi, '2')
+            .replace(/демоны старшей школы/gi, 'старшая школа dxd')
+            .replace(/ё/gi, 'е')
+            .trim()
     }
 
     function shikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
@@ -141,63 +152,133 @@ export function entry (ctx: ParserContext): Function {
         }).then(i => i.json()).then(i => i.data || [])
     }
 
-    function anime365Search (mediaType: MediaType, name: string): Promise<any[]> {
-        if (mediaType === 'manga') return Promise.resolve([])
-        return ctx.libs.fetch('https://smotret-anime.ru/api/series/?' + ctx.libs.qs.stringify({
-            query: name,
-            fields: 'myAnimeListId,allTitles',
-            limit: 15
-        })).then(i => i.json()).then(i => {
-            if (i.error) return []
-            return i.data || []
-        })
+    function googleShikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
+        return ctx.libs.fetch('https://serpapi.com/search.json?' + ctx.libs.qs.stringify({
+            engine: 'google',
+            q: `${mediaType} ${name} site:shikimori.one`,
+            api_key: process.env.SERPAPI_TOKEN
+        })).then(i => i.json()).then(i => i.organic_results || [])
     }
+
+    // function anime365Search (mediaType: MediaType, name: string): Promise<any[]> {
+    //     if (mediaType === 'manga') return Promise.resolve([])
+    //     return ctx.libs.fetch('https://smotret-anime.ru/api/series/?' + ctx.libs.qs.stringify({
+    //         query: name,
+    //         fields: 'myAnimeListId,titles',
+    //         limit: 15
+    //     })).then(i => i.json()).then(i => {
+    //         if (i.error) return []
+    //         return i.data || []
+    //     })
+    // }
 
     function lookupFactory<T, V> (options: LookupFactoryOptions<T, V>): (mediaType: MediaType, names: string[]) => Promise<MediaMeta | null> {
         return async function lookup (mediaType: MediaType, names: string[]): Promise<MediaMeta | null> {
+            let perNameMaxScoreBase: Record<string, number> = {}
+            names.forEach((i) => {
+                perNameMaxScoreBase[i] = 0
+            })
+            let minAcceptableScore = names.length * threshold * 0.6
+
+            let flagsCache: Record<string, string> = {}
+            let getNameFlags = (s: string): string => {
+                if (s in flagsCache) return flagsCache[s]
+                let digits = s.match(/[0-9]/g)?.join('') || ''
+                let types = s.match(/o[vn]a|special|сп[еэ]шл|спецвыпуск|recap|рекап|movie|фильм|pv/gi) || []
+                types = ctx.libs.objectUtils.uniqueBy(types.map(i =>
+                    i.match(/o[vn]a/i) ? 'ova' :
+                    i.match(/pv/i) ? 'pv' :
+                    i.match(/special|сп[еэ]шл|спецвыпуск/i) ? 'special' :
+                    i.match(/recap|рекап/i) ? 'recap' :
+                    i.match(/movie|фильм/i) ? 'movie' :
+                    'unknown'
+                ))
+                let ret = `${digits}_${types.sort().join(',')}`
+                flagsCache[s] = ret
+                return ret
+            }
+
+            let acronymsCache: Record<string, string> = {}
+            let getAcronym = (s: string): string => {
+                let meaningful = s.replace(/o[vn]a|special|сп[еэ]шл|спецвыпуск|recap|рекап|movie|фильм|pv/gi, '').trim()
+                let words = meaningful.split(/\s+|[⁓‐‑‒–—―.,;/\$_\-]/g)
+                let ret: string
+                if (words.length < 2) {
+                    ret = meaningful
+                } else {
+                    ret = words.map(i => i[0]).join('')
+                }
+
+                acronymsCache[s] = ret
+                return ret
+            }
+
+            let hadConflict = false
+
             for (let name of names) {
                 const data = await options.search(mediaType, name)
                 const iter = options.getIterable(data)
 
-                let totalThreshold = 0
-                let maxSimilarity = 0
-                let maxSimilarityItem: V | null = null
+                let maxScore = 0
+                let scoreHistory: number[] = []
+                let maxScoreItem: V | null = null
 
-                itemsLoop:
-                    for (let it of iter) {
-                        let itNames = options.getNames(it)
-                        let totalSimilarity = 0
+                for (let [i, it] of ctx.libs.objectUtils.enumerate(iter)) {
+                    let itNames = options.getNames(it)
+                    let perNameMaxScore = { ...perNameMaxScoreBase }
+                    let positionCoefficient = 1 + 0.2 * ((iter.length - i) / Math.floor(iter.length / 2))
 
-                        for (let itName of itNames) {
-                            for (let n of names) {
-                                let sim = ctx.libs.fuzz.ratio(normalizeString(itName), n, { full_process: false })
-                                if (sim === 100) {
-                                    // full match, immediately proceed
-                                    maxSimilarityItem = it
-                                    maxSimilarity = Infinity
+                    for (let itName of itNames) {
+                        let itNameNorm = normalizeString(itName)
+                        let itFlags = getNameFlags(itNameNorm)
+                        let itAcronym = getAcronym(itNameNorm)
 
-                                    break itemsLoop
+                        for (let n of names) {
+                            let score = ctx.libs.fuzz.token_sort_ratio(itNameNorm, n, { full_process: false })
+                            let flags = getNameFlags(n)
+                            let acronym = getAcronym(n)
+
+                            if (score < threshold && (itNameNorm === itAcronym || n === acronym)) {
+                                let acrDist = ctx.libs.fuzz.distance(itAcronym, acronym, { full_process: false })
+                                if (acrDist <= 1) {
+                                    let acrScore = ctx.libs.fuzz.ratio(itAcronym, acronym, { full_process: false })
+                                    if (acrScore > score) {
+                                        score = acrScore
+                                    }
                                 }
-
-                                if (sim > threshold) {
-                                    totalSimilarity += sim
-                                }
-
-                                totalThreshold += threshold
                             }
-                        }
 
+                            if (itFlags === flags) score += 15
 
-                        if (totalSimilarity > maxSimilarity) {
-                            maxSimilarity = totalSimilarity
-                            maxSimilarityItem = it
+                            if (score > threshold && score > perNameMaxScore[n]) {
+                                perNameMaxScore[n] = score
+                            }
                         }
                     }
 
-                if (maxSimilarityItem && maxSimilarity > totalThreshold) {
-                    ctx.debug('%s found %s for names %o (similarity: %d)',
-                        options.name, options.getPrimaryName(maxSimilarityItem), names, maxSimilarity)
-                    const id = await options.getId(maxSimilarityItem, data)
+                    let totalScore = Object.values(perNameMaxScore).reduce((a, b) => a + b, 0)
+                    totalScore *= positionCoefficient
+
+                    ctx.debug('score = %f for names %o and item %o', totalScore, names, itNames)
+
+                    scoreHistory.push(totalScore)
+                    if (totalScore > maxScore) {
+                        maxScore = totalScore
+                        maxScoreItem = it
+                    }
+                }
+
+                scoreHistory.sort((a, b) => b - a)
+                if (scoreHistory.length > 2 && Math.abs(scoreHistory[0] - scoreHistory[1]) < 5) {
+                    ctx.debug('close match: %o', scoreHistory)
+                    hadConflict = true
+                    continue
+                }
+
+                if (maxScoreItem && maxScore > minAcceptableScore) {
+                    ctx.debug('%s found %s for names %o (score: %d)',
+                        options.name, options.getPrimaryName(maxScoreItem), names, maxScore)
+                    const id = await options.getId(maxScoreItem, data)
                     if (id === null) {
                         return null
                     }
@@ -207,6 +288,10 @@ export function entry (ctx: ParserContext): Function {
                         type: mediaType
                     }
                 }
+            }
+
+            if (hadConflict) {
+                throw CONFLICTING_RESULT
             }
 
             return null
@@ -285,13 +370,21 @@ export function entry (ctx: ParserContext): Function {
             getPrimaryName: it => it.node.title,
             getId: it => it.node.id
         }),
-        anime365: lookupFactory<any[], any>({
-            name: 'anime365',
-            search: anime365Search,
-            getIterable: i => i,
-            getNames: it => it.allTitles,
-            getPrimaryName: it => it.allTitles[0],
-            getId: it => it.myAnimeListId
+        // anime365: lookupFactory<any[], any>({
+        //     name: 'anime365',
+        //     search: anime365Search,
+        //     getIterable: i => i,
+        //     getNames: it => Object.values(it.titles),
+        //     getPrimaryName: it => it.titles.romaji,
+        //     getId: it => it.myAnimeListId
+        // })
+        'google-shikimori': lookupFactory<any[], any>({
+            name: 'google-shikimori',
+            search: googleShikimoriSearch,
+            getIterable: i => i.filter(i => i.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)),
+            getNames: it => [it.title.split(/ \/ | \.\.\./)[0]],
+            getPrimaryName: it => it.title.split(/ \/ | \.\.\./)[0],
+            getId: it => it.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)![1]
         })
     }
 
@@ -301,11 +394,13 @@ export function entry (ctx: ParserContext): Function {
         if (!names.length) {
             return null
         }
-        // normalize input
-        names = names.map(i => normalizeString(i!))
+        // normalize and sort input
+        // (usually ends up like this: (romaji/english => russian => japanese)
+        names = names.map(i => normalizeString(i!)).sort()
 
 
-        let queue = ['anime365', 'shikimori', 'kitsu', 'mal', 'anilist']
+        let queue = ['shikimori', 'kitsu', 'mal', 'anilist']
+        let conflictResolveQueue = ['google-shikimori']
         if (options.preferredSearch) {
             if (Array.isArray(options.preferredSearch)) {
                 queue = options.preferredSearch
@@ -333,12 +428,20 @@ export function entry (ctx: ParserContext): Function {
             }
         }
 
+        let hadConflict = false
+
         for (let service of queue) {
             let media = null
             try {
                 media = await lookupFunctions[service](options.mediaType ?? 'anime', names)
             } catch (e) {
-                ctx.log('%s threw exception: %s', service, e.stack)
+                if (e === CONFLICTING_RESULT && !hadConflict) {
+                    hadConflict = true
+
+                    queue.push(...conflictResolveQueue)
+                } else {
+                    ctx.log('%s threw exception: %s', service, e.stack)
+                }
             }
             if (media !== null) {
                 for (let name of names) {

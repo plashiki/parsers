@@ -99,8 +99,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         if (!it) break
 
         const target = await ctx.deps['common/lookup']({
-            names: [it.title, ...it.secondary],
-            preferredSearch: 'anime365'
+            names: [it.title, ...it.secondary]
         })
         if (!target) {
             ctx.log('lookup failed: %s, %t', it.title, it.secondary)

@@ -119,8 +119,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         const data = JSON.parse(m[1].replace(',}', '}'))
 
         const meta = await ctx.deps['common/lookup']({
-            names: [original, russian],
-            preferredSearch: 'anime365'
+            names: [original, russian]
         })
         if (!meta) {
             ctx.debug('lookup failed')

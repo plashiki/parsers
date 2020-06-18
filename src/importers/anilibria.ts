@@ -64,7 +64,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 },
                 body: ctx.libs.qs.stringify({
                     query: 'feed',
-                    perPage: firstRun ? 200 : 15, // they don't have max limit tho
+                    perPage: firstRun ? 200 : 150, // they don't have max limit tho
                     filter: 'id,last,names,moon,voices,season,playlist',
                     page: page++
                 })
@@ -99,8 +99,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         if (!rel) break
 
         let media = await ctx.deps['common/lookup']({
-            names: rel.names,
-            preferredSearch: 'anime365'
+            names: rel.names
         })
         if (!media) continue
         let common = {

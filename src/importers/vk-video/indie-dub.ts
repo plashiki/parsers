@@ -11,7 +11,7 @@ export function entry (ctx: ParserContext) {
                 target: v => v.title,
                 fields: {
                     target: m => [
-                        m[1] + (m[2] ? ' ' + m[2] : ''),
+                        m[1] + (m[2] && m[2] !== '1' ? ' ' + m[2] : ''),
                         m[4]
                     ],
                     part: m => m[3] || '1',

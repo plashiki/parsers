@@ -12,7 +12,7 @@ export function entry (ctx: ParserContext) {
                 fields: {
                     target: m => [
                         m[6],
-                        m[1] + (m[3] ? ' ' + m[3] : '')
+                        m[1] + (m[3] && m[3] !== '1' ? ' ' + m[3] : '')
                     ],
                     part: m => m[2],
                     kind: m => m[4] === 'озвучка' ? 'dub' : 'sub',

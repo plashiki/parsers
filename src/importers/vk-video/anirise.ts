@@ -36,8 +36,8 @@ export function entry (ctx: ParserContext) {
                 skip: v => !!v.title.match(/трейлер/i),
                 fields: {
                     target: m => [
-                        m[1] + (m[3] === 'OVA' ? ' OVA' : ''),
-                        m[6] + (m[3] === 'OVA' ? ' OVA' : '')
+                        m[1] && m[1] + (m[3].match(/OVA/i) ? ' OVA' : ''),
+                        m[6] && m[6] + (m[3].match(/OVA/i) ? ' OVA' : '')
                     ],
                     part: m => m[2],
                     kind: 'dub',

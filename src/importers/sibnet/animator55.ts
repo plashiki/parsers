@@ -7,10 +7,10 @@ export function entry (ctx: ParserContext) {
         owner: 'animator55',
         adapter: ctx.deps['common/regex-adapter']([
             {
-                regex: /^(.+?) (?:(\d+)(?: серия)?|S(\d+)E(\d+))?(?: \(?(.+?)(?: Дубляж)?\)?)?$/i,
+                regex: /^(.+?) (?:(\d+)(?: серия)?|(?:S0*(\d+))?E(\d+))?(?: \(?(.+?)(?: Дубляж)?\)?)?$/i,
                 target: v => v.title,
                 fields: {
-                    target: m => m[1] + (m[3] ? ' ' + m[3] : ''),
+                    target: m => m[1] + (m[3] && m[3] !== '1' ? ' ' + m[3] : ''),
                     part: m => m[2] || m[4],
                     kind: 'dub',
                     lang: 'ru',

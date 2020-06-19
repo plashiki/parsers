@@ -4,6 +4,7 @@ import { ParserAdapter } from '../../types'
 export interface SibnetVideo {
     id: number
     title: string
+    album: string
     url: string
 
     getDescription (): Promise<string>
@@ -60,11 +61,12 @@ export function entry (ctx: ParserContext): Function {
                     let title = it.find('.preview>a[href^="/video"]').attr('title')
                     if (title == null) continue
                     let href = it.find('.preview>a[href^="/video"]').attr('href')
-                    let alb = ' - ' + it.find('.text a[href^="/alb"]').text().replace(/\s*\.{3}$/, '')
+                    let albStart = it.find('.text a[href^="/alb"]').text().replace(/\s*\.{3}$/, '')
+                    let albPostfix = ' - ' + albStart
 
-                    let titleParts = title.split(alb)
-                    titleParts.pop()
-                    title = titleParts.join(alb)
+                    let titleParts = title.split(albPostfix)
+                    let album = albStart + titleParts.pop()
+                    title = titleParts.join(albPostfix)
 
                     const m = href?.match(/\/video(\d+)(?:[\-?#]|$)/i)
                     if (!m) {
@@ -82,6 +84,7 @@ export function entry (ctx: ParserContext): Function {
                         let item = {
                             id,
                             title,
+                            album,
                             url: 'https://video.sibnet.ru/shell.php?videoid=' + id,
                             __cachedDescription: null as string | null,
 

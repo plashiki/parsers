@@ -439,7 +439,7 @@ export function entry (ctx: ParserContext): Function {
                     hadConflict = true
 
                     queue.push(...conflictResolveQueue)
-                } else {
+                } else if (e !== CONFLICTING_RESULT) {
                     ctx.log('%s threw exception: %s', service, e.stack)
                 }
             }

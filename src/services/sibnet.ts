@@ -11,6 +11,7 @@ export interface SibnetVideo {
 
 export interface SibnetImporterOptions<T> {
     owner: string
+    startFrom?: number
 
     adapter: ParserAdapter<SibnetVideo, T>
 }
@@ -24,7 +25,7 @@ export function entry (ctx: ParserContext): Function {
         const backlog: SibnetVideo[] = []
         let page = 1
         let backlogIndex: Record<number, true> = {}
-        const lastSaved = await ctx.libs.kv.get(storage, 0)
+        const lastSaved = await ctx.libs.kv.get(storage, options.startFrom ?? 0)
         ctx.debug('lastSaved = %d', lastSaved)
 
         rootLoop:

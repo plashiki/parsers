@@ -234,7 +234,7 @@ export function entry (ctx: ParserContext): Function {
                         let itAcronym = getAcronym(itNameNorm)
 
                         for (let n of names) {
-                            let score = ctx.libs.fuzz.token_sort_ratio(itNameNorm, n, { full_process: false })
+                            let score = ctx.libs.fuzz.ratio(itNameNorm, n, { full_process: false })
                             let flags = getNameFlags(n)
                             let acronym = getAcronym(n)
 

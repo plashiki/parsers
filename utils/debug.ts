@@ -15,6 +15,7 @@ export const getDebugger = function (name: string): Debugger {
 
 const debuggers = [
     'system',
+    'linter',
     'relations'
 ] as const
 type DebuggerName = typeof debuggers[number]

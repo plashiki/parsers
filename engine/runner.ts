@@ -5,6 +5,7 @@ import { DEBUG, getDebugger } from '../utils/debug'
 import { ParserContext } from '../types/ctx'
 import { compileModule } from './compiler'
 import fetch from 'node-fetch'
+import { lintModule } from './linter'
 
 export function getContextFor (mod: Module, params?: AnyKV, parent?: Module, rootCtx?: ParserContext): ParserContext {
     loadDependencies(mod)
@@ -59,6 +60,10 @@ export function executeParser (uid: string, params?: AnyKV): any {
     if (!mod) {
         throw Error(`parser ${uid} not found`)
     }
+    if (!lintModule(mod)) {
+        throw Error(`Cannot proceed because of linter errors`)
+    }
+
     const ctx = getContextFor(mod, params)
 
     return [ctx, mod.entry!(ctx)]

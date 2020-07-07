@@ -4,6 +4,7 @@ import { writeFileSync } from 'fs'
 import { DEBUG } from '../utils/debug'
 import { createIndex } from '../utils/object-utils'
 import fetch from 'node-fetch'
+import { lintModule } from './linter'
 
 async function main () {
     const updated: Partial<Module>[] = []
@@ -30,6 +31,11 @@ async function main () {
 
     for (let mod of modules) {
         let str = mod.uid + '... '
+        if (!lintModule(mod)) {
+            DEBUG.system(str + 'lint error')
+            continue
+        }
+
         const cached = cache[mod.uid]
         mod.source = getSource(mod)
         const sourceHash = createSourceHash(mod)

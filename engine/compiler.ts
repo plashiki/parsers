@@ -79,7 +79,9 @@ export function compileModule (mod: Module): string {
                     'node': '12'
                 }
             }],
-            'babel-preset-minify'
+            ['babel-preset-minify', {
+                builtIns: false
+            }]
         ]
     })?.code
 

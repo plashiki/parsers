@@ -9,7 +9,7 @@ interface AnilistMedia {
 }
 
 export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> {
-    const fetch = (page) => ctx.libs.fetch('https://graphql.anilist.co/', {
+    const fetchPage = (page) => ctx.libs.fetch('https://graphql.anilist.co/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -18,7 +18,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
     }).then(i => {
         if (i.status === 429) {
             ctx.debug('rate limit, waiting %ds', i.headers['retry-after'])
-            return ctx.libs.sleep(parseInt(i.headers['retry-after']) * 1000).then(() => fetch(page))
+            return ctx.libs.sleep(parseInt(i.headers['retry-after']) * 1000).then(() => fetchPage(page))
         }
 
         return i.json()
@@ -32,7 +32,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
 
     rootLoop:
         while (true) {
-            const json = await fetch(page++)
+            const json = await fetchPage(page++)
             if (!json.data?.Page?.media) {
                 ctx.log('no media: %o', json)
                 break

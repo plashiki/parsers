@@ -72,7 +72,7 @@ export function compileModule (mod: Module): string {
         })
 
     code = babel.transformSync(code, {
-        filename: 'parser.js',
+        filename: `dist/src/${mod.uid}.js`,
         presets: [
             ['@babel/preset-env', {
                 targets: {

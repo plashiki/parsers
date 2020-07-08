@@ -44,7 +44,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 if (url.startsWith('//')) url = 'https:' + url
                 if (url[0] === '/') url = 'https://animejoy.ru' + url
 
-                let m = url.match(/\/(\d+)/)
+                let m = url.match(/\.ru\/(.+?\/(\d+))/)
                 if (!m) {
                     ctx.log('no id found for %s', url)
                     continue
@@ -149,10 +149,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
             let title = el.text()
 
-            let m = title.match(/^(\d+)\s*серия$/i)
+            let m = title.match(/^(?:ova)?\s*(\d+)\s*(?:серия|ova)$/i)
             let episode: number
             if (!m) {
-                if (mayBeMovie) {
+                if (mayBeMovie || title.match(/^(фильм|ova)$/i)) {
                     episode = 1
                 } else {
                     ctx.log('did not match at %s: %s', item.url, title)
@@ -170,7 +170,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 part: episode,
                 kind: 'sub',
                 lang: 'ru',
-                author: 'AnimeJoy',
+                author: '', // they sometimes translate themselves but usually it's just wakanim, and there's no way to detect that
                 hq: !url.match(/sibnet/i),
                 url
             }

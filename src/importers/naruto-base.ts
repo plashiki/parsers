@@ -61,10 +61,14 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (c === '(') nest += 1
         }
 
-        let args = JSON.parse('[' + argsString.replace(/'/g, '"') + ']')
-        let [id, , type] = args
-        if (!(type in map)) return null
-        return map[type].replace('$$', id)
+        try {
+            let args = JSON.parse('[' + argsString.replace(/'/g, '"') + ']')
+            let [id, , type] = args
+            if (!(type in map)) return null
+            return map[type].replace('$$', id)
+        } catch (e) {
+            return null
+        }
     }
 
     async function * parsePage (url: string, fromDeferred = false): AsyncIterable<Translation> {
@@ -123,7 +127,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     let backlog: NarutoBaseMeta[] = []
     let backlogIndex: Record<number, true> = {}
-    let page = 1
+    let page = 350
 
     rootLoop:
         while (true) {

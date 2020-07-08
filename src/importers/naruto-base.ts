@@ -127,7 +127,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     let backlog: NarutoBaseMeta[] = []
     let backlogIndex: Record<number, true> = {}
-    let page = 350
+    let page = 1
 
     rootLoop:
         while (true) {

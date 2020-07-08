@@ -274,7 +274,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     }
 
     const lastSaved = await ctx.libs.kv.get('aspr-ls', '1970-01-01T00:00:00.000Z')
-    let page = 250
+    let page = 1
     let backlog: AnimespiritMeta[] = []
     let backlogIndex: Record<string, true> = {}
 

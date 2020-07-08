@@ -49,8 +49,9 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         $('legend:contains(рекомендуем)').parent().remove()
         if ($('.content-block').html()?.match(_3dTrash)) return
+        if ($('#dle-content b:contains(Жанр)')[0]?.next.data?.match(/обзор/i)) return
 
-        let m = url.match(/\/(\d+)/)
+        let m = url.match(/\.ru\/(.+?\/\d+)/)
         if (!m) {
             ctx.log('no id found for %s', url)
             return
@@ -158,7 +159,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
             for (let i = 0; i <= (tags.length - 1); i++) {
                 let cur = $(`#top_div_${(tags[i][0] - 1) * 2}`)
-                let spoiler = $(`#spoiler_${tags[i][0].toString()} center`)
+                let spoiler = $(`#spoiler_${tags[i][0]} center`)
                 while (true) {
                     if (cur.is('h3') && (((parseInt(cur.attr('id')!.replace('top_div_', '')) / 2) + 1) == tags[i][1])) {
                         spoiler.append(cur.clone())
@@ -273,13 +274,13 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     }
 
     const lastSaved = await ctx.libs.kv.get('aspr-ls', '1970-01-01T00:00:00.000Z')
-    let page = 1
+    let page = 250
     let backlog: AnimespiritMeta[] = []
     let backlogIndex: Record<string, true> = {}
 
     rootLoop:
         while (true) {
-            const html = await ctx.libs.fetch(`https://online.animespirit.ru/page/${page++}/`)
+            const html = await ctx.libs.fetch(`https://video.animespirit.ru/page/${page++}/`)
                 .then(i => i.buffer())
                 .then(i => ctx.libs.iconv.decode(i, 'win1251'))
 
@@ -299,7 +300,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     ctx.log('url not found')
                     return
                 }
-                let m = url.match(/\/(\d+)/)
+                let m = url.match(/\.ru\/(.+?\/\d+)/)
                 if (!m) {
                     ctx.log('no id found for %s', url)
                     continue

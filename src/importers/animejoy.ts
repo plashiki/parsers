@@ -19,7 +19,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     ctx.debug('lastSaved = %s', lastSaved)
 
 
-    let page = 73
+    let page = 1
     let backlog: AnimejoyMeta[] = []
     let backlogIndex: Record<number, boolean> = {}
 

@@ -8,7 +8,7 @@ export function entry (ctx: ParserContext) {
         startFrom: 2185466,
         adapter: ctx.deps['common/regex-adapter']([
             {
-                regex: /^(?:\((?:японские|корейские) имена\) )?(.+?)(?: (\d+)(?:\s*\(\d+\))?)?(?: \/ (.+?)(?: \2(?:\s*\(\d+\))?)?)?(?: \(\d+x\d+\))? \[русские субтитры\]/i,
+                regex: /^(?:\((?:японские|корейские) имена\) )?(.+?)(?: (\d+)(?:\s*\(\d+\))?(?:\s*END)?)?(?: \/ (.+?)(?: \2(?:\s*END)?(?:\s*\(\d+\))?)?)?(?: \(\d+x\d+\))? \[русские субтитры\]/i,
                 skip: v => !!v.title.match(/chico with honeyworks|\s(op|ed)(\d+)?\)|\((op|ed)(\d+)?\s|nowisee|insert song/i),
                 target: v => v.title,
                 fields: {

@@ -147,7 +147,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     cur.before(`<h3 id="ss5" onclick="$('#spoiler_${id}').toggle();">${name}</h3><div id="spoiler_${id}"><center></center></div>`)
                 }
 
-                if (cur.is(':contains([/sss)')) {
+                if (cur.is(':contains([/sss)') && openTags.length) {
                     let spoilerArray: number[] = []
                     spoilerArray.push(openTags[openTags.length - 1])
                     openTags.splice(openTags.indexOf(openTags[openTags.length - 1]), 1)
@@ -274,7 +274,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     }
 
     const lastSaved = await ctx.libs.kv.get('aspr-ls', '1970-01-01T00:00:00.000Z')
-    let page = 1
+    let page = 85
     let backlog: AnimespiritMeta[] = []
     let backlogIndex: Record<string, true> = {}
 

@@ -12,7 +12,8 @@ export const provide = ['common/lookup', 'common/mapper-url2meta']
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     // some pages require authorization, so account is optional but recommended.
     const headers = {
-        Cookie: process.env.ANIMEJOY_AUTH
+        Cookie: process.env.ANIMEJOY_AUTH,
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
     } as any
 
     const lastSaved = await ctx.libs.kv.get('ajoy-ls', '1970-01-01T00:00:00Z')
@@ -90,7 +91,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         let item = backlog.pop()
         if (!item) break
 
-        const html = await ctx.libs.fetch(item.url).then(i => i.text())
+        const html = await ctx.libs.fetch(item.url, { headers }).then(i => i.text())
         const $ = ctx.libs.cheerio.load(html)
 
         let postTitle = $('#dle-content .titleup .ntitle').text().replace(/\s*\[.*$/i, '')
@@ -120,7 +121,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         }
 
         let playlistElement = $('.playlists-ajax')
-        if (!playlistElement) {
+        if (!playlistElement.length) {
             ctx.log('no playlist at %s', item.url)
             continue
         }

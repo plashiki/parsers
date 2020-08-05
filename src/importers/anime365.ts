@@ -55,6 +55,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (tr.series.worldArtId > 0) {
                 mapping.worldart = tr.series.worldArtId
             }
+            mapping.anime365 = tr.series.id
 
             try {
                 await ctx.libs.mappings.extend('anime', mapping)

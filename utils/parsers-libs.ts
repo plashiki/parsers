@@ -17,6 +17,7 @@ import { DynamicOptions, ExternalServiceMappings, MediaType } from '../types'
 import { RelationsParser } from '../engine/relations'
 import { DEBUG } from './debug'
 import { AbortController, AbortSignal } from 'abort-controller'
+import * as puppeteer from 'puppeteer'
 
 let httpAgent = undefined
 if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {
@@ -51,6 +52,7 @@ export const libs = {
         // this boi is fat af
         return require('jsdom')
     },
+    puppeteer,
     PB,
     anitomy,
     relations: RelationsParser.loadFromFile('relations.json'),

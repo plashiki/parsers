@@ -30,6 +30,7 @@
         "node-fetch": "^2.6.0",
         "normalize-url": "^5.0.0",
         "protoflex": "^0.1.1",
+        "puppeteer": "^5.2.1",
         "typescript": "^3.7.3",
         "ws": "^7.2.4"
     },
@@ -46,6 +47,7 @@
         "@types/node": "^13.13.2",
         "@types/node-fetch": "^2.5.4",
         "@types/parse5": "^5.0.2",
+        "@types/puppeteer": "^3.0.1",
         "@types/sass": "^1.16.0",
         "@types/uglify-js": "^3.9.0",
         "@types/ws": "^7.2.4",

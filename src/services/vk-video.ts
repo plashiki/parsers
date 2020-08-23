@@ -20,6 +20,7 @@ export interface VkImporterOptions<T> {
 export function entry (ctx: ParserContext): Function {
     const urlSymbol = Symbol.for('item-url')
     const hqSymbol = Symbol.for('item-hq')
+    const { kv, fetch, qs, sleep, normalizeUrl } = ctx.libs
 
     return async function * <T> (options: VkImporterOptions<T>): AsyncIterable<T> {
         // vkv-ls = vk video, last saved
@@ -27,17 +28,17 @@ export function entry (ctx: ParserContext): Function {
         const backlog: VkVideo[] = []
         let page = 0
         let backlogIndex: Record<number, true> = {}
-        const lastSaved = await ctx.libs.kv.get(storage, 0)
+        const lastSaved = await kv.get(storage, 0)
         ctx.debug('lastSaved = %d', lastSaved)
 
         rootLoop:
             while (true) {
-                const json = await ctx.libs.fetch('https://api.vk.com/method/video.get', {
+                const json = await fetch('https://api.vk.com/method/video.get', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded'
                     },
-                    body: ctx.libs.qs.stringify({
+                    body: qs.stringify({
                         v: '5.101',
                         access_token: process.env.VK_TOKEN,
                         owner_id: options.owner,
@@ -48,7 +49,7 @@ export function entry (ctx: ParserContext): Function {
 
                 if (json.error) {
                     if (json.error.error_code === 6) {
-                        await ctx.libs.sleep(600)
+                        await sleep(600)
                         ctx.log('a bit of rate limit for u')
                         continue
                     }
@@ -92,14 +93,14 @@ export function entry (ctx: ParserContext): Function {
             if (!item.player) continue
 
             // provide common things
-            item[urlSymbol] = ctx.libs.normalizeUrl(item.player)
+            item[urlSymbol] = normalizeUrl(item.player)
             item[hqSymbol] = item.height >= 720
 
             const ret = await options.adapter(item)
             yield * ret
             ctx.stat()
 
-            await ctx.libs.kv.set(storage, item.adding_date)
+            await kv.set(storage, item.adding_date)
         }
     }
 }

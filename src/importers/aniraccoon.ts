@@ -11,17 +11,19 @@ interface AniraccoonMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    const lastSaved = await ctx.libs.kv.get('ls-anrc', '1970-01-01T00:00:00')
+    const { kv, fetch, cheerio } = ctx.libs
+
+    const lastSaved = await kv.get('ls-anrc', '1970-01-01T00:00:00')
     let page = 1
     let backlog: AniraccoonMeta[] = []
     let backlogIndex: Record<string, true> = {}
 
     rootLoop:
         while (true) {
-            const html = await ctx.libs.fetch(`https://aniraccoon.com/anime/page/${page++}/`)
+            const html = await fetch(`https://aniraccoon.com/anime/page/${page++}/`)
                 .then(i => i.text())
 
-            const $ = ctx.libs.cheerio.load(html)
+            const $ = cheerio.load(html)
             const items = $('.movie').toArray()
             if (!items.length) break
 
@@ -66,8 +68,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         const item = backlog.pop()
         if (!item) break
 
-        const html = await ctx.libs.fetch(item.url).then(i => i.text())
-        const $ = ctx.libs.cheerio.load(html)
+        const html = await fetch(item.url).then(i => i.text())
+        const $ = cheerio.load(html)
         const title = $('.info_movie h1').text()
             .replace(/\s*\(субтитры\)\s*$/i, '')
         if (
@@ -103,7 +105,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 if (tabTitle.match(/субтитры/i)) kind = 'sub'
 
                 const storage = `ls-anrc:${item.id}:${kind}`
-                const lastSavedEpisode = await ctx.libs.kv.get(storage, 0)
+                const lastSavedEpisode = await kv.get(storage, 0)
 
                 const code = el.html()!.trim()
                 if (code.startsWith('um.')) {
@@ -143,7 +145,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     }
 
                     if (episode > lastSavedEpisode) {
-                        await ctx.libs.kv.set(storage, episode)
+                        await kv.set(storage, episode)
                     }
                 } else if (code.startsWith('vk.')) {
                     let episode = 0
@@ -175,6 +177,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             }
         }
 
-        await ctx.libs.kv.set('ls-anrc', item.updatedAt)
+        await kv.set('ls-anrc', item.updatedAt)
     }
 }

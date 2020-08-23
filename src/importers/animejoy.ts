@@ -10,13 +10,15 @@ interface AnimejoyMeta {
 export const provide = ['common/lookup', 'common/mapper-url2meta']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
+    const { kv, fetch, cheerio } = ctx.libs
+
     // some pages require authorization, so account is optional but recommended.
     const headers = {
         Cookie: process.env.ANIMEJOY_AUTH,
         'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
     } as any
 
-    const lastSaved = await ctx.libs.kv.get('ajoy-ls', '1970-01-01T00:00:00Z')
+    const lastSaved = await kv.get('ajoy-ls', '1970-01-01T00:00:00Z')
     ctx.debug('lastSaved = %s', lastSaved)
 
 
@@ -26,8 +28,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let html = await ctx.libs.fetch(`https://animejoy.ru/page/${page++}/`, { headers }).then(i => i.text())
-            const $ = ctx.libs.cheerio.load(html)
+            let html = await fetch(`https://animejoy.ru/page/${page++}/`, { headers }).then(i => i.text())
+            const $ = cheerio.load(html)
 
             let items = $('.block.story')
             if (!items.length) break
@@ -55,7 +57,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 if (id in backlogIndex) continue
 
-                const updatedAt = await ctx.libs.fetch(url, {
+                const updatedAt = await fetch(url, {
                     method: 'HEAD',
                     headers
                 }).then(i => {
@@ -91,8 +93,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         let item = backlog.pop()
         if (!item) break
 
-        const html = await ctx.libs.fetch(item.url, { headers }).then(i => i.text())
-        const $ = ctx.libs.cheerio.load(html)
+        const html = await fetch(item.url, { headers }).then(i => i.text())
+        const $ = cheerio.load(html)
 
         let postTitle = $('#dle-content .titleup .ntitle').text().replace(/\s*\[.*$/i, '')
         let romajiTitle = $('#dle-content .titleup .romanji').text() // bro its not romanji bro
@@ -128,16 +130,16 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         let xfName = playlistElement.data('xfname') // whatever xfname is.
         let newsId = playlistElement.data('news_id') // unsure if it may be different from post it, but whatever
 
-        let playlistJson = await ctx.libs.fetch(`https://animejoy.ru/engine/ajax/playlists.php?news_id=${newsId}&xfield=${xfName}`, { headers }).then(i => i.json())
+        let playlistJson = await fetch(`https://animejoy.ru/engine/ajax/playlists.php?news_id=${newsId}&xfield=${xfName}`, { headers }).then(i => i.json())
         if (!playlistJson.success) {
             ctx.log('failed to get playlist for %s: %s', item.url, playlistJson.message)
             continue
         }
-        let playlist$ = ctx.libs.cheerio.load(playlistJson.response)
+        let playlist$ = cheerio.load(playlistJson.response)
         let playlistItems = playlist$('.playlists-videos .playlists-items ul li').toArray()
 
         let maxEpisode = 0
-        let lastSavedEpisode = await ctx.libs.kv.get(`ajoy-ls:${item.id}`, 0)
+        let lastSavedEpisode = await kv.get(`ajoy-ls:${item.id}`, 0)
 
         let mayBeMovie = playlist$('.playlists-lists .playlists-items').length === 0
 
@@ -177,7 +179,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             }
         }
 
-        await ctx.libs.kv.set(`ajoy-ls:${item.id}`, maxEpisode)
-        await ctx.libs.kv.set('ajoy-ls', item.updatedAt)
+        await kv.set(`ajoy-ls:${item.id}`, maxEpisode)
+        await kv.set('ajoy-ls', item.updatedAt)
     }
 }

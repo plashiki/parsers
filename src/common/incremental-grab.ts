@@ -29,9 +29,11 @@ export interface IncrementalGrabOptions<T> {
 }
 
 export function entry (ctx: ParserContext): Function {
+    const { kv } = ctx.libs
+
     return async function * incrementalGrab<T> (options: IncrementalGrabOptions<T>): AsyncIterable<T> {
         const storage = `inc-ls:${options.id ?? ctx.rootUid}`
-        const lastSaved = await ctx.libs.kv.get(storage, options.lastSaved ?? 0)
+        const lastSaved = await kv.get(storage, options.lastSaved ?? 0)
         let current = lastSaved + 1
         let failed = 0
         const maxFailed = options.maxEmpty ?? 15
@@ -45,7 +47,7 @@ export function entry (ctx: ParserContext): Function {
                 } else {
                     yield result.item
                 }
-                await ctx.libs.kv.set(storage, current)
+                await kv.set(storage, current)
             } else {
                 ctx.debug('nothing at %d, ignoring: %s, can fail %d more times', current, result.next === true, maxFailed - failed - 1)
                 if (result.next !== true) {

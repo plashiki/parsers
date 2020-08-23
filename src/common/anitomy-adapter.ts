@@ -31,6 +31,8 @@ export interface AnitomyAdapterOptions<T> {
 export const provide = ['common/lookup', 'common/fix-mixed-langs']
 
 export function entry (ctx: ParserContext): Function {
+    const { resolveDynamicOptions, anitomy } = ctx.libs
+
     const urlSymbol = Symbol.for('item-url')
 
     return function <T> (options: AnitomyAdapterOptions<T>): ParserAdapter<T, Translation> {
@@ -39,13 +41,13 @@ export function entry (ctx: ParserContext): Function {
 
             const targetString = options.target(item)
             let ret: Partial<Translation> = {
-                ...(await ctx.libs.resolveDynamicOptions(options.fallback || {}, item))
+                ...(await resolveDynamicOptions(options.fallback || {}, item))
             }
             const lookup: LookupOptions = {
                 names: [],
                 ...(options.lookup || {})
             }
-            const result = await ctx.libs.anitomy.parseAsync(targetString, options.options)
+            const result = await anitomy.parseAsync(targetString, options.options)
             ctx.debug('anitomy result: %o', result)
 
             if (result.anime_title) {
@@ -103,7 +105,7 @@ export function entry (ctx: ParserContext): Function {
             // override
             ret = {
                 ...ret,
-                ...(await ctx.libs.resolveDynamicOptions(options.override ?? {}, item))
+                ...(await resolveDynamicOptions(options.override ?? {}, item))
             }
 
             // check if all fields are there

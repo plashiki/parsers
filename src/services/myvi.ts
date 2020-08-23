@@ -29,16 +29,18 @@ export interface MyviImporterOptions<T> {
 }
 
 export function entry (ctx: ParserContext): Function {
+    const { kv, fetch } = ctx.libs
+
     const urlSymbol = Symbol.for('item-url')
 
     return async function * <T> (options: MyviImporterOptions<T>): AsyncIterable<T> {
         // mv-ls = myvi, last saved
         const storage = `mv-ls:${ctx.rootUid}`
-        let lastSaved = await ctx.libs.kv.get(storage, 0)
+        let lastSaved = await kv.get(storage, 0)
         ctx.debug('lastSaved = %d', lastSaved)
 
         while (true) {
-            const json = await ctx.libs.fetch(
+            const json = await fetch(
                 `https://api.myvi.tv/api/1.0/videos/${options.owner}/channel?host=${options.host ?? 'www.myvi.tv'}&size=10000&sort=asc&d=${lastSaved}`,
                 {
                     headers: {
@@ -60,7 +62,7 @@ export function entry (ctx: ParserContext): Function {
                 vid.getDescription = async () => {
                     if (vid.__cachedDescription != undefined) return vid.__cachedDescription
 
-                    return ctx.libs.fetch(
+                    return fetch(
                         `https://api.myvi.tv/api/1.0/channel/${options.owner}/detail?video_id=${vid.id}&featured_size=0&host=${options.host ?? 'www.myvi.tv'}`
                     )
                         .then(i => i.json())
@@ -77,7 +79,7 @@ export function entry (ctx: ParserContext): Function {
                 ctx.stat()
 
                 lastSaved = vid.createDate
-                await ctx.libs.kv.set(storage, vid.createDate)
+                await kv.set(storage, vid.createDate)
             }
 
             if (!json.prev) break

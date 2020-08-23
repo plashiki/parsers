@@ -17,6 +17,7 @@ interface LookupFactoryOptions<T, V> {
 
 export function entry (ctx: ParserContext): Function {
     const CONFLICTING_RESULT = Symbol('CONFLICTING_RESULT')
+    const { kv, fetch, sleep, qs, objectUtils, fuzz } = ctx.libs
 
     const threshold = parseInt(process.env.FUZZY_THRESHOLD!)
     let mkIndex = (s: string): Record<string, 1> => s.split('').reduce((a, b) => {
@@ -82,7 +83,7 @@ export function entry (ctx: ParserContext): Function {
     }
 
     function shikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
-        return ctx.libs.fetch(`https://shikimori.one/api/${mediaType}s?${ctx.libs.qs.stringify({
+        return fetch(`https://shikimori.one/api/${mediaType}s?${qs.stringify({
             search: name,
             limit: 15
         })}&__=/autocomplete`, {
@@ -91,14 +92,14 @@ export function entry (ctx: ParserContext): Function {
             }
         }).then(i => {
             if (i.status === 429) {
-                return ctx.libs.sleep(400).then(() => shikimoriSearch(mediaType, name))
+                return sleep(400).then(() => shikimoriSearch(mediaType, name))
             }
             return i.json()
         })
     }
 
     function anilistSearch (mediaType: MediaType, name: string): Promise<any[]> {
-        return ctx.libs.fetch('https://graphql.anilist.co', {
+        return fetch('https://graphql.anilist.co', {
             method: 'POST',
             headers: {
                 'User-Agent': 'PlaShiki',
@@ -124,14 +125,14 @@ export function entry (ctx: ParserContext): Function {
             })
         }).then(i => {
             if (i.status === 429) {
-                return ctx.libs.sleep(parseInt(i.headers['retry-after']) * 1000).then(() => anilistSearch(mediaType, name))
+                return sleep(parseInt(i.headers['retry-after']) * 1000).then(() => anilistSearch(mediaType, name))
             }
             return i.json().then(i => i?.data?.Page?.media ?? [])
         })
     }
 
     function kitsuSearch (mediaType: MediaType, name: string): Promise<any> {
-        return ctx.libs.fetch(`https://kitsu.io/api/edge/${mediaType}?${ctx.libs.qs.stringify({
+        return fetch(`https://kitsu.io/api/edge/${mediaType}?${qs.stringify({
             'filter[text]': name,
             'page[limit]': 15,
             'fields[anime]': 'titles,canonicalTitle,abbreviatedTitles,mappings',
@@ -141,7 +142,7 @@ export function entry (ctx: ParserContext): Function {
     }
 
     function malSearch (mediaType: MediaType, name: string): Promise<any[]> {
-        return ctx.libs.fetch('https://api.myanimelist.net/v2/anime?' + ctx.libs.qs.stringify({
+        return fetch('https://api.myanimelist.net/v2/anime?' + qs.stringify({
             q: name,
             fields: 'alternative_titles',
             limit: 15
@@ -153,7 +154,7 @@ export function entry (ctx: ParserContext): Function {
     }
 
     function googleShikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
-        return ctx.libs.fetch('https://serpapi.com/search.json?' + ctx.libs.qs.stringify({
+        return fetch('https://serpapi.com/search.json?' + qs.stringify({
             engine: 'google',
             q: `${mediaType} ${name} site:shikimori.one`,
             api_key: process.env.SERPAPI_TOKEN
@@ -162,7 +163,7 @@ export function entry (ctx: ParserContext): Function {
 
     // function anime365Search (mediaType: MediaType, name: string): Promise<any[]> {
     //     if (mediaType === 'manga') return Promise.resolve([])
-    //     return ctx.libs.fetch('https://smotret-anime.ru/api/series/?' + ctx.libs.qs.stringify({
+    //     return fetch('https://smotret-anime.ru/api/series/?' + qs.stringify({
     //         query: name,
     //         fields: 'myAnimeListId,titles',
     //         limit: 15
@@ -185,7 +186,7 @@ export function entry (ctx: ParserContext): Function {
                 if (s in flagsCache) return flagsCache[s]
                 let digits = s.match(/[0-9]/g)?.join('') || ''
                 let types = s.match(/o[vn]a|special|сп[еэ]шл|спецвыпуск|recap|рекап|movie|фильм|pv/gi) || []
-                types = ctx.libs.objectUtils.uniqueBy(types.map(i =>
+                types = objectUtils.uniqueBy(types.map(i =>
                     i.match(/o[vn]a/i) ? 'ova' :
                     i.match(/pv/i) ? 'pv' :
                     i.match(/special|сп[еэ]шл|спецвыпуск/i) ? 'special' :
@@ -223,7 +224,7 @@ export function entry (ctx: ParserContext): Function {
                 let scoreHistory: number[] = []
                 let maxScoreItem: V | null = null
 
-                for (let [i, it] of ctx.libs.objectUtils.enumerate(iter)) {
+                for (let [i, it] of objectUtils.enumerate(iter)) {
                     let itNames = options.getNames(it)
                     let perNameMaxScore = { ...perNameMaxScoreBase }
                     let positionCoefficient = 1 + 0.2 * ((iter.length - i) / Math.floor(iter.length / 2))
@@ -234,14 +235,14 @@ export function entry (ctx: ParserContext): Function {
                         let itAcronym = getAcronym(itNameNorm)
 
                         for (let n of names) {
-                            let score = ctx.libs.fuzz.ratio(itNameNorm, n, { full_process: false })
+                            let score = fuzz.ratio(itNameNorm, n, { full_process: false })
                             let flags = getNameFlags(n)
                             let acronym = getAcronym(n)
 
                             if (score < threshold && (itNameNorm === itAcronym || n === acronym)) {
-                                let acrDist = ctx.libs.fuzz.distance(itAcronym, acronym, { full_process: false })
+                                let acrDist = fuzz.distance(itAcronym, acronym, { full_process: false })
                                 if (acrDist <= 1) {
-                                    let acrScore = ctx.libs.fuzz.ratio(itAcronym, acronym, { full_process: false })
+                                    let acrScore = fuzz.ratio(itAcronym, acronym, { full_process: false })
                                     if (acrScore > score) {
                                         score = acrScore
                                     }
@@ -416,7 +417,7 @@ export function entry (ctx: ParserContext): Function {
         }
 
         for (let name of names) {
-            const cached = await ctx.libs.kv.get<any>(`~lookup:${name}`, null)
+            const cached = await kv.get<any>(`~lookup:${name}`, null)
             if (cached && cached.r >= Date.now()) {
                 if (cached.v !== null) {
                     ctx.debug('cached %s %d for name %s', cached.v.type, cached.v.id, name)
@@ -445,7 +446,7 @@ export function entry (ctx: ParserContext): Function {
             }
             if (media !== null) {
                 for (let name of names) {
-                    await ctx.libs.kv.set(`~lookup:${name}`, {
+                    await kv.set(`~lookup:${name}`, {
                         r: Date.now() + 604800000, // 1 week
                         v: media
                     })
@@ -458,7 +459,7 @@ export function entry (ctx: ParserContext): Function {
         }
 
         for (let name of names) {
-            await ctx.libs.kv.set(`~lookup:${name}`, {
+            await kv.set(`~lookup:${name}`, {
                 r: Date.now() + 86400000, // 1 day
                 v: null
             })

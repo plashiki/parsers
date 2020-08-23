@@ -11,9 +11,11 @@ interface NarutoBaseMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
+    const { kv, fetch, cheerio, objectUtils } = ctx.libs
+
     // older post mostly have dead players
-    let lastSaved = await ctx.libs.kv.get('nb-ls', '2016-01-01-0')
-    let deferred = await ctx.libs.kv.get<string[]>('nb-def', [])
+    let lastSaved = await kv.get('nb-ls', '2016-01-01-0')
+    let deferred = await kv.get<string[]>('nb-def', [])
 
     ctx.debug('lastSaved = %s, %d deferred', lastSaved, deferred.length)
 
@@ -72,7 +74,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     }
 
     async function * parsePage (url: string, fromDeferred = false): AsyncIterable<Translation> {
-        const html = await ctx.libs.fetch(url).then(i => {
+        const html = await fetch(url).then(i => {
             if (i.status === 404) return '404'
 
             return i.text()
@@ -87,7 +89,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             return
         }
 
-        const $ = ctx.libs.cheerio.load(html)
+        const $ = cheerio.load(html)
         const title = $('h1[itemprop="name"]').text()
         // ancient magic
         let m = title.match(/^(.+?)(?: -)? (\d+)(?: *\/ *(.+?) \2| \((.+?)\)| серия)?$/)
@@ -131,14 +133,14 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const html = await ctx.libs.fetch(`https://naruto-base.su/news/?page${page++}`).then(i => {
+            const html = await fetch(`https://naruto-base.su/news/?page${page++}`).then(i => {
                 if (i.status === 404) return '404'
 
                 return i.text()
             })
             if (html === '404') break
 
-            const $ = ctx.libs.cheerio.load(html)
+            const $ = cheerio.load(html)
             let items = $('.news.relative').toArray()
 
             for (let it of items) {
@@ -184,7 +186,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         yield * parsePage(it.url)
         ctx.stat()
-        await ctx.libs.kv.set('nb-ls', it.id)
+        await kv.set('nb-ls', it.id)
     }
-    await ctx.libs.kv.set('nb-def', ctx.libs.objectUtils.uniqueBy(deferred))
+    await kv.set('nb-def', objectUtils.uniqueBy(deferred))
 }

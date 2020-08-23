@@ -79,7 +79,9 @@ interface KodikEnvelope<T> {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    let lastSaved = await ctx.libs.kv.get('kodik-ls', '1970-01-01T00:00:00.000Z')
+    const { kv, fetch, mappings } = ctx.libs
+
+    let lastSaved = await kv.get('kodik-ls', '1970-01-01T00:00:00.000Z')
     ctx.debug('lastSaved = %s', lastSaved)
 
     let url = 'https://kodikapi.com/list?token=54eb773d434f45f4c9bb462bc3ce0342&types=anime,anime-serial&limit=100&with_episodes=true'
@@ -87,7 +89,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let json: KodikEnvelope<KodikRelease[]> = await ctx.libs.fetch(url).then(i => i.json())
+            let json: KodikEnvelope<KodikRelease[]> = await fetch(url).then(i => i.json())
 
             for (let it of json.results) {
                 if (it.updated_at <= lastSaved) {
@@ -168,7 +170,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         }
         if (Object.keys(map).length > 1) {
             try {
-                await ctx.libs.mappings.extend('anime', map)
+                await mappings.extend('anime', map)
             } catch (e) {
                 ctx.log('conflict mapping: %o', map)
             }
@@ -202,7 +204,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 continue
             }
 
-            let lastSavedEpisode = await ctx.libs.kv.get(`kodik-ls:${it.id}`, 0)
+            let lastSavedEpisode = await kv.get(`kodik-ls:${it.id}`, 0)
             for (let season of Object.values(it.seasons)) {
                 let maxEpisode = -1
                 for (let [episode_, url] of Object.entries(season.episodes)) {
@@ -225,7 +227,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 }
 
                 if (maxEpisode !== -1) {
-                    await ctx.libs.kv.set(`kodik-ls:${it.id}`, maxEpisode)
+                    await kv.set(`kodik-ls:${it.id}`, maxEpisode)
                 }
             }
         } else if (it.type === 'anime') {
@@ -243,6 +245,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             }
         }
 
-        await ctx.libs.kv.set('kodik-ls', it.updated_at)
+        await kv.set('kodik-ls', it.updated_at)
     }
 }

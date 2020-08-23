@@ -45,8 +45,10 @@ interface AnilibriaEpisode {
 }
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
+    const { kv, fetch, qs } = ctx.libs
+
     // -1 because their db sucks (very old releases have last=0)
-    let lastSaved = await ctx.libs.kv.get('al-ls', -1)
+    let lastSaved = await kv.get('al-ls', -1)
     let firstRun = lastSaved === -1
 
     let backlog: AnilibriaRelease[] = []
@@ -56,13 +58,13 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let json: AnilibriaEnvelope<AnilibriaFeedItem[]> = await ctx.libs.fetch('https://www.anilibria.tv/public/api/index.php', {
+            let json: AnilibriaEnvelope<AnilibriaFeedItem[]> = await fetch('https://www.anilibria.tv/public/api/index.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'User-Agent': 'PlaShiki/2.0.0'
                 },
-                body: ctx.libs.qs.stringify({
+                body: qs.stringify({
                     query: 'feed',
                     perPage: firstRun ? 200 : 150, // they don't have max limit tho
                     filter: 'id,last,names,moon,voices,season,playlist',
@@ -111,7 +113,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             author: 'AniLibria' + (rel.voices.length ? ' (' + rel.voices.join(', ') + ')' : ''),
         }
 
-        let lastSavedEpisode = await ctx.libs.kv.get(`al-ls:${rel.id}`, 0)
+        let lastSavedEpisode = await kv.get(`al-ls:${rel.id}`, 0)
         let maxEpisode = 0
 
         for (let ep of rel.playlist) {
@@ -140,7 +142,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         ctx.stat()
 
-        await ctx.libs.kv.set('al-ls', parseInt(rel.last))
-        await ctx.libs.kv.set(`al-ls:${rel.id}`, maxEpisode)
+        await kv.set('al-ls', parseInt(rel.last))
+        await kv.set(`al-ls:${rel.id}`, maxEpisode)
     }
 }

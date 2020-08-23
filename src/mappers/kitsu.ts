@@ -23,6 +23,8 @@ interface KitsuMapping {
 }
 
 export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> {
+    const { kv, fetch } = ctx.libs
+
     const aliases: Record<string, ExternalService> = {
         mangaupdates: 'mangaupdates',
         anidb: 'anidb',
@@ -34,7 +36,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
         mydramalist: 'mydramalist'
     }
 
-    let lastSaved = await ctx.libs.kv.get('kitsu-ls', '1970-01-01T00:00:00.000Z')
+    let lastSaved = await kv.get('kitsu-ls', '1970-01-01T00:00:00.000Z')
     let offset = 0
     let backlog: KitsuMapping[] = []
     let backlogIndex: Record<string, true> = {}
@@ -42,7 +44,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
 
     rootLoop:
         while (true) {
-            const json = await ctx.libs.fetch(
+            const json = await fetch(
                 'https://kitsu.io/api/edge/mappings?page[limit]=20&sort=-updatedAt&include=item&fields[item]=id&page[offset]=' + offset
             ).then(i => i.json())
             if (json.errors) {
@@ -114,7 +116,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> 
         }
 
         if (mapping.attributes.updatedAt) {
-            await ctx.libs.kv.set('kitsu-ls', mapping.attributes.updatedAt)
+            await kv.set('kitsu-ls', mapping.attributes.updatedAt)
         }
     }
 

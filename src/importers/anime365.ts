@@ -4,7 +4,9 @@ import { ExternalService, ExternalServiceMappings, Translation } from '../../typ
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    let lastSaved = await ctx.libs.kv.get('a365-ls', 0)
+    const { kv, fetch, mappings } = ctx.libs
+
+    let lastSaved = await kv.get('a365-ls', 0)
     const notIgnored = {
         tv: 1,
         ova: 1,
@@ -17,7 +19,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
 
     while (true) {
-        const json = await ctx.libs.fetch(`http://smotret-anime.ru/api/translations/?feed=id&limit=1000&afterId=${lastSaved}`, {
+        const json = await fetch(`http://smotret-anime.ru/api/translations/?feed=id&limit=1000&afterId=${lastSaved}`, {
             headers: {
                 'User-Agent': 'PlaShiki/2.0.0'
             }
@@ -58,7 +60,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             mapping.anime365 = tr.series.id
 
             try {
-                await ctx.libs.mappings.extend('anime', mapping)
+                await mappings.extend('anime', mapping)
             } catch (e) {
                 ctx.log('conflict mapping: %o', mapping)
             }
@@ -86,7 +88,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             yield ret
 
             lastSaved = tr.id
-            await ctx.libs.kv.set('a365-ls', lastSaved)
+            await kv.set('a365-ls', lastSaved)
         }
     }
 }

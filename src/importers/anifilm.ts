@@ -24,7 +24,9 @@ interface AnifilmMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    const lastSaved = await ctx.libs.kv.get('aflm-ls', '1970-01-01T00:00:00Z')
+    const { kv, fetch, cheerio } = ctx.libs
+
+    const lastSaved = await kv.get('aflm-ls', '1970-01-01T00:00:00Z')
     let page = 1
 
     let backlog: AnifilmMeta[] = []
@@ -32,9 +34,9 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let html = await ctx.libs.fetch(`https://anifilm.tv/releases/page/${page}`).then(i => i.text())
+            let html = await fetch(`https://anifilm.tv/releases/page/${page}`).then(i => i.text())
 
-            const $ = ctx.libs.cheerio.load(html)
+            const $ = cheerio.load(html)
             if (parseInt($('.pagination__item--active').text()) !== page) break
             page += 1
 
@@ -59,8 +61,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 if (id in backlogIndex) continue
                 backlogIndex[id] = true
 
-                const page = await ctx.libs.fetch(url).then(i => i.text())
-                const $$ = ctx.libs.cheerio.load(page)
+                const page = await fetch(url).then(i => i.text())
+                const $$ = cheerio.load(page)
                 // it tends to use time with timezone, we dont want it
                 const updatedAt = new Date($$('[itemprop=dateCreated]').text()).toISOString()
                 if (updatedAt < lastSaved) {
@@ -108,12 +110,12 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         const players: AnifilmPlayer[][] = await Promise.all(
             it.players.map(
-                (name) => ctx.libs.fetch(`https://anifilm.tv/releases/api:online:${it.id}:${name}`)
+                (name) => fetch(`https://anifilm.tv/releases/api:online:${it.id}:${name}`)
                     .then(i => i.json() as Promise<AnifilmPlayer[]>)
             )
         )
 
-        let data: Record<string, number | undefined> = await ctx.libs.kv.getMany(it.players.map(i => `aflm-ls:${it.id}:${i}`))
+        let data: Record<string, number | undefined> = await kv.getMany(it.players.map(i => `aflm-ls:${it.id}:${i}`))
         let lastSaved: Record<string, number> = {}
         for (let name of it.players) {
             lastSaved[name] = data[`aflm-ls:${it.id}:${name}`] ?? 0
@@ -135,11 +137,11 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                         url: pl.iframe
                     }
 
-                    await ctx.libs.kv.set(`aflm-ls:${it.id}:${pl.from}`, n)
+                    await kv.set(`aflm-ls:${it.id}:${pl.from}`, n)
                 }
             }
         }
 
-        await ctx.libs.kv.set('aflm-ls', it.updatedAt)
+        await kv.set('aflm-ls', it.updatedAt)
     }
 }

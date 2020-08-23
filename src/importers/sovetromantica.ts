@@ -43,21 +43,23 @@ interface SrAnime {
 }
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
-    const lastSaved = await ctx.libs.kv.get('sr-ls', 0)
+    const { kv, fetch, objectUtils, qs } = ctx.libs
+
+    const lastSaved = await kv.get('sr-ls', 0)
     ctx.debug('lastSaved = %d', lastSaved)
 
     let mapping: Record<number, number> = {}
 
     async function loadAnimes (ids: number[]): Promise<void> {
-        let newIds = ctx.libs.objectUtils.uniqueBy(ids.filter(i => !(i in mapping)))
+        let newIds = objectUtils.uniqueBy(ids.filter(i => !(i in mapping)))
         if (!newIds.length) return
 
-        await ctx.libs.fetch('https://service.sovetromantica.com/v1/animes', {
+        await fetch('https://service.sovetromantica.com/v1/animes', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: ctx.libs.qs.stringify({
+            body: qs.stringify({
                 anime_id_array: JSON.stringify(newIds)
             })
         }).then(i => {
@@ -78,7 +80,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const json: SrTranslation[] = await ctx.libs.fetch(`https://service.sovetromantica.com/v1/last_episodes?limit=30&offset=${offset}`).then(i => i.json())
+            const json: SrTranslation[] = await fetch(`https://service.sovetromantica.com/v1/last_episodes?limit=30&offset=${offset}`).then(i => i.json())
 
             if (json.length === 0) break
             offset += 30
@@ -118,7 +120,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             url: item.embed.replace(/sovetromantica\.com/i, 'sovetromantica.moe')
         }
 
-        await ctx.libs.kv.set('sr-ls', item.episode_id)
+        await kv.set('sr-ls', item.episode_id)
     }
 
 }

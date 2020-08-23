@@ -52,12 +52,13 @@ export const provide = ['common/lookup', 'common/fix-mixed-langs']
 export function entry (ctx: ParserContext): Function {
     const urlSymbol = Symbol.for('item-url')
     const hqSymbol = Symbol.for('item-hq')
+    const { objectUtils } = ctx.libs
 
     return function <T> (optionsArray: RegexAdapterOptions<T>[]): ParserAdapter<T, Translation> {
         return async function (item: T): Promise<Translation[]> {
             let ret: Translation[] = []
             let matched = false
-            for (let [i, options] of ctx.libs.objectUtils.enumerate(optionsArray)) {
+            for (let [i, options] of objectUtils.enumerate(optionsArray)) {
                 if (options.skip?.(item)) continue
 
                 const matchTarget = typeof options.target === 'string'
@@ -164,7 +165,7 @@ export function entry (ctx: ParserContext): Function {
                             urls = [urls]
                         }
                         for (let url of urls) {
-                            const tr = ctx.libs.objectUtils.clone(translation)
+                            const tr = objectUtils.clone(translation)
                             tr.url = url
                             ret.push(tr)
                         }

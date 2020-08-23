@@ -19,6 +19,7 @@ export interface SibnetImporterOptions<T> {
 
 export function entry (ctx: ParserContext): Function {
     const urlSymbol = Symbol.for('item-url')
+    const { kv, fetch, iconv, cheerio } = ctx.libs
 
     return async function * <T> (options: SibnetImporterOptions<T>): AsyncIterable<T> {
         // sn-ls = sibnet, last saved
@@ -26,12 +27,12 @@ export function entry (ctx: ParserContext): Function {
         const backlog: SibnetVideo[] = []
         let page = 1
         let backlogIndex: Record<number, true> = {}
-        const lastSaved = await ctx.libs.kv.get(storage, options.startFrom ?? 0)
+        const lastSaved = await kv.get(storage, options.startFrom ?? 0)
         ctx.debug('lastSaved = %d', lastSaved)
 
         rootLoop:
             while (true) {
-                const html = await ctx.libs.fetch(
+                const html = await fetch(
                     `https://video.sibnet.ru/users/${encodeURIComponent(options.owner)}/video/?sort=0&page=${page}`, {
                         method: 'GET',
                         headers: {
@@ -43,9 +44,9 @@ export function entry (ctx: ParserContext): Function {
                     if (i.status !== 200) ctx.log('http %d', i.status)
 
                     return i.buffer()
-                }).then(i => ctx.libs.iconv.decode(i, 'win1251'))
+                }).then(i => iconv.decode(i, 'win1251'))
 
-                const $ = ctx.libs.cheerio.load(html)
+                const $ = cheerio.load(html)
 
                 const realPage = parseInt($('.multipagesnavig>b:nth-of-type(2)').text())
                 if (!isNaN(realPage) && realPage !== page) break
@@ -92,11 +93,11 @@ export function entry (ctx: ParserContext): Function {
                                 if (item.__cachedDescription !== null) {
                                     return item.__cachedDescription
                                 }
-                                return ctx.libs.fetch(href!)
+                                return fetch(href!)
                                     .then(i => i.buffer())
                                     .then((buf) => {
-                                        const html = ctx.libs.iconv.decode(buf, 'win1251')
-                                        const $ = ctx.libs.cheerio.load(html)
+                                        const html = iconv.decode(buf, 'win1251')
+                                        const $ = cheerio.load(html)
 
                                         const val = $('meta[property="og:description"]').attr('content') || ''
                                         item.__cachedDescription = val
@@ -130,7 +131,7 @@ export function entry (ctx: ParserContext): Function {
             yield * ret
             ctx.stat()
 
-            await ctx.libs.kv.set(storage, item.id)
+            await kv.set(storage, item.id)
         }
     }
 }

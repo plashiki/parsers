@@ -9,6 +9,8 @@ interface AnimespiritMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
+    const { kv, fetch, cheerio, iconv } = ctx.libs
+
     const _3dTrash = /live action|dorama|дорам[аы]|д[yу]н[xх][yу][aа]/i
 
     function prepareUrl (s: string): string | null {
@@ -39,11 +41,11 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     async function * parsePage (url: string): AsyncIterable<Translation> {
         ctx.debug('loading %s', url)
-        const html = await ctx.libs.fetch(url)
+        const html = await fetch(url)
             .then(i => i.buffer())
-            .then(buf => ctx.libs.iconv.decode(buf, 'win1251'))
+            .then(buf => iconv.decode(buf, 'win1251'))
 
-        const $ = ctx.libs.cheerio.load(html, {
+        const $ = cheerio.load(html, {
             decodeEntities: false
         })
 
@@ -58,7 +60,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         }
 
         const id = m[1]
-        const lastSavedEpisode = await ctx.libs.kv.get(`aspr-ls:${id}`, 0)
+        const lastSavedEpisode = await kv.get(`aspr-ls:${id}`, 0)
 
         const title = $('#dle-content .content-block-title').text().trim()
         const secondaryTitle = $('#dle-content td>b>h3').text().trim()
@@ -270,21 +272,21 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             }
         }
 
-        await ctx.libs.kv.set(`aspr-ls:${id}`, maxEpisode)
+        await kv.set(`aspr-ls:${id}`, maxEpisode)
     }
 
-    const lastSaved = await ctx.libs.kv.get('aspr-ls', '1970-01-01T00:00:00.000Z')
+    const lastSaved = await kv.get('aspr-ls', '1970-01-01T00:00:00.000Z')
     let page = 85
     let backlog: AnimespiritMeta[] = []
     let backlogIndex: Record<string, true> = {}
 
     rootLoop:
         while (true) {
-            const html = await ctx.libs.fetch(`https://video.animespirit.ru/page/${page++}/`)
+            const html = await fetch(`https://video.animespirit.ru/page/${page++}/`)
                 .then(i => i.buffer())
-                .then(i => ctx.libs.iconv.decode(i, 'win1251'))
+                .then(i => iconv.decode(i, 'win1251'))
 
-            const $ = ctx.libs.cheerio.load(html, {
+            const $ = cheerio.load(html, {
                 decodeEntities: false
             })
             const items = $('.content-block').toArray()
@@ -310,7 +312,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 if (id in backlogIndex) continue
 
-                const updatedAt = await ctx.libs.fetch(url, {
+                const updatedAt = await fetch(url, {
                     method: 'HEAD'
                 }).then(i => {
                     let date = new Date(i.headers.get('last-modified') || '')
@@ -347,6 +349,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         yield * parsePage(it.url)
         ctx.stat()
-        await ctx.libs.kv.set('aspr-ls', it.updatedAt)
+        await kv.set('aspr-ls', it.updatedAt)
     }
 }

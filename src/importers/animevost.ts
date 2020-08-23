@@ -10,9 +10,11 @@ interface AnimevostMeta {
 export const provide = ['common/lookup']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
+    const { kv, fetch, cheerio } = ctx.libs
+
     const domain = process.env.PRODUCTION ? 'animevost.org' : 'a49.agorov.org'
 
-    const lastSaved = await ctx.libs.kv.get('avst-ls', '1970-01-01')
+    const lastSaved = await kv.get('avst-ls', '1970-01-01')
     ctx.debug('lastSaved = %s', lastSaved)
 
     const months = {
@@ -47,8 +49,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const html = await ctx.libs.fetch(`https://${domain}/page/${page++}/`).then(i => i.text())
-            const $ = ctx.libs.cheerio.load(html)
+            const html = await fetch(`https://${domain}/page/${page++}/`).then(i => i.text())
+            const $ = cheerio.load(html)
 
             const items = $('.shortstory').toArray()
             if (items.length === 0) {
@@ -99,8 +101,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         const it = backlog.pop()
         if (!it) break
 
-        const html = await ctx.libs.fetch(it.url).then(i => i.text())
-        const $ = ctx.libs.cheerio.load(html)
+        const html = await fetch(it.url).then(i => i.text())
+        const $ = cheerio.load(html)
         const title = $('.shortstoryHead').text().trim()
         let m = title.match(/^(.+?) \/ (.+?) \[\d+(?:-\d+)? из \d+\+?\](?: \[\d+ серия - \d+ \S+?\])?$/i)
         if (!m) {
@@ -110,7 +112,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         const [, russian, original] = m
 
-        const lastSavedEpisode = await ctx.libs.kv.get(`avst-ls:${it.id}`, 0)
+        const lastSavedEpisode = await kv.get(`avst-ls:${it.id}`, 0)
         m = html.match(/data\s*=\s*({.+?})/)
         if (!m) {
             ctx.log('did not found data: %s', it.url)
@@ -134,10 +136,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (n > lastSavedEpisode) {
                 if (n > maxEpisode) maxEpisode = n
                 proms.push(
-                    ctx.libs.fetch(`https://${domain}/frame2.php?play=${value}`)
+                    fetch(`https://${domain}/frame2.php?play=${value}`)
                         .then(i => i.text())
                         .then((html) => {
-                            const $ = ctx.libs.cheerio.load(html)
+                            const $ = cheerio.load(html)
                             let url = $('iframe').attr('src')
                             if (!url) return null
                             if (url.startsWith('//')) url = 'https:' + url
@@ -161,7 +163,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         yield * res.filter(i => i !== null) as Translation[]
 
-        await ctx.libs.kv.set(`avst-ls:${it.id}`, maxEpisode)
-        await ctx.libs.kv.set('avst-ls', it.date)
+        await kv.set(`avst-ls:${it.id}`, maxEpisode)
+        await kv.set('avst-ls', it.date)
     }
 }

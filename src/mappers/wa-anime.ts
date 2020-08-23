@@ -8,23 +8,25 @@ export const provide = [
 ]
 
 export async function * entry (ctx: ParserContext) {
+    const { sleep, fetch, iconv, cheerio } = ctx.libs
+
     const headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'
     }
 
     const fetchAnime = (id: number, retryN = 0): Promise<FetchOneResult<MapperResult>> => {
         const url = 'http://www.world-art.ru/animation/animation.php?id=' + id
-        return ctx.libs.fetch(url, { headers })
+        return fetch(url, { headers })
             .then(i => i.buffer())
             .then(async (buf) => {
-                const text = ctx.libs.iconv.decode(buf, 'windows-1251')
-                const $ = ctx.libs.cheerio.load(text)
+                const text = iconv.decode(buf, 'windows-1251')
+                const $ = cheerio.load(text)
 
                 // worldart is weird
                 if ($('meta[http-equiv=Refresh]').length) {
                     // invalid id or flood wait, retry a few times
                     if (retryN === 3) return { item: null }
-                    return ctx.libs.sleep(250).then(() => fetchAnime(id, retryN + 1))
+                    return sleep(250).then(() => fetchAnime(id, retryN + 1))
                 }
                 const canonical = $('link[rel=canonical]').attr('href')
                 if (canonical === 'http://www.world-art.ru/animation/animation.php?id=1' && id !== 1) {

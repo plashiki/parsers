@@ -15,7 +15,8 @@
         "run": "node dist/engine/index.js",
         "relations": "node dist/engine/relations.js",
         "push": "tsc && node dist/engine/deploy.js",
-        "pull": "node dist/engline/pull.js"
+        "pull": "node dist/engline/pull.js",
+        "lint": "tsc && node dist/engine/linter.js"
     },
     "dependencies": {
         "@teidesu/anitomy-js": "^4.1.2",

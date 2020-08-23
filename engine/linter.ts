@@ -1,13 +1,11 @@
-import { Module, sourceDir } from './core'
+import { getAllModules, Module, sourceDir } from './core'
 import { DEBUG } from '../utils/debug'
-import { libs } from '../utils/parsers-libs'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
 /*
  * Simple linter that prevents obvious errors like
- * missing dependency for `ctx.deps` and using library
- * without `ctx.libs`.
+ * missing dependency for `ctx.deps`
  *
  * Simple to bypass by design, thus regex-based.
  */
@@ -35,4 +33,11 @@ export function lintModule (module: Module): boolean {
     }
 
     return ok
+}
+
+if (require.main === module) {
+    DEBUG.linter('Linting all modules...')
+    for (let mod of getAllModules()) {
+        lintModule(mod)
+    }
 }

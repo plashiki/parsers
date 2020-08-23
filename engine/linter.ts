@@ -34,12 +34,5 @@ export function lintModule (module: Module): boolean {
         }
     }
 
-    Object.keys(libs).forEach((name) => {
-        if (sourceCode.match(new RegExp(`\\s(?<!ctx\\.libs\\.)${name}(\\.[a-zA-Z0-9]+)*\\(`, 'g'))) {
-            DEBUG.linter('%s: Library %s is accessed from outer scope', module.uid, name)
-            ok = false
-        }
-    })
-
     return ok
 }

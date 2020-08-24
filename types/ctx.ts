@@ -9,6 +9,7 @@ import { MapperMeta } from '../src/common/mapper-url2meta'
 import { SibnetImporterOptions } from '../src/services/sibnet'
 import { MyviImporterOptions } from '../src/services/myvi'
 import { CaptchaSolver } from '../src/common/captcha-solver'
+import { CloudflareUamBypass } from '../src/common/.cf-uam-bypass'
 
 export interface ParserContext<P = AnyKV> {
     /**
@@ -56,6 +57,7 @@ export interface ParserContext<P = AnyKV> {
         'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>
 
         'common/captcha-solver': CaptchaSolver
+        'common/cf-uam-bypass': CloudflareUamBypass
 
         // any other that were not covered before
         [key: string]: any

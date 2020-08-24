@@ -13,7 +13,7 @@ import * as anitomy from '@teidesu/anitomy-js'
 import * as fuzz from 'fuzzball'
 import KeyValue from './key-value'
 import normalizeUrl from 'normalize-url'
-import { DynamicOptions, ExternalServiceMappings, MediaType } from '../types'
+import { DynamicOptions, ExternalServiceMappings, MediaPart, MediaType } from '../types'
 import { RelationsParser } from '../engine/relations'
 import { DEBUG } from './debug'
 import { AbortController, AbortSignal } from 'abort-controller'
@@ -63,6 +63,12 @@ export const libs = {
         },
         async findFull (type: MediaType, mapping: ExternalServiceMappings): Promise<MediaType | null> {
             return null
+        }
+    },
+    mediaParts: {
+        // stub
+        async add (part: MediaPart): Promise<void> {
+            DEBUG.system('MediaParts.add %o', part)
         }
     },
     AbortController,

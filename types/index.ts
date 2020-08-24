@@ -140,3 +140,10 @@ export interface PlayerSource {
                              // If array is passed then videos will be
                              // concatenated. Has higher priority than `src`
 }
+
+export interface MediaPart {
+    // id: number // not needed for addition
+    media_type: MediaType
+    media_id: number
+    number: number
+}

@@ -17,7 +17,7 @@ import { DynamicOptions, ExternalServiceMappings, MediaType } from '../types'
 import { RelationsParser } from '../engine/relations'
 import { DEBUG } from './debug'
 import { AbortController, AbortSignal } from 'abort-controller'
-import * as puppeteer from 'puppeteer'
+import puppeteer from 'puppeteer'
 
 let httpAgent = undefined
 if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {

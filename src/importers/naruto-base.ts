@@ -133,7 +133,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const html = await fetch(`https://naruto-base.su/news/?page${page++}`).then(i => {
+            const pageUrl = `https://naruto-base.su/news/?page${page++}`
+            const html = await fetch(pageUrl).then(i => {
                 if (i.status === 404) return '404'
 
                 return i.text()
@@ -152,8 +153,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     ctx.log('failed to find url')
                     continue
                 }
-                if (url.startsWith('//')) url = 'https:' + url
-                if (url[0] === '/') url = 'https://naruto-base.su' + url
+                url = new URL(url, pageUrl).href
                 let id = url.split('/').pop()!
 
                 if (id <= lastSaved) {

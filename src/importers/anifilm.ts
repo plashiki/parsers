@@ -34,7 +34,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let html = await fetch(`https://anifilm.tv/releases/page/${page}`).then(i => i.text())
+            const pageUrl = `https://anifilm.tv/releases/page/${page}`
+            let html = await fetch(pageUrl).then(i => i.text())
 
             const $ = cheerio.load(html)
             if (parseInt($('.pagination__item--active').text()) !== page) break
@@ -50,8 +51,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     continue
                 }
 
-                if (url.startsWith('//')) url = 'https:' + url
-                if (url.startsWith('/')) url = 'https://anifilm.tv' + url
+                url = new URL(url, pageUrl).href
+
                 let m = url.match(/releases\/(\d+)/)
                 if (!m) {
                     ctx.log('failed to find id: %s', url)

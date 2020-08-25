@@ -20,8 +20,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const html = await fetch(`https://aniraccoon.com/anime/page/${page++}/`)
-                .then(i => i.text())
+            const pageUrl = `https://aniraccoon.com/anime/page/${page++}/`
+            const html = await fetch(pageUrl).then(i => i.text())
 
             const $ = cheerio.load(html)
             const items = $('.movie').toArray()
@@ -35,9 +35,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     ctx.log('couldn\'t find updatedAt or url')
                     continue
                 }
-                if (url.startsWith('//')) url = 'https:' + url
-                if (url[0] === '/') url = 'https://aniraccoon.com' + url
 
+                url = new URL(url, pageUrl).href
                 if (updatedAt < lastSaved) {
                     break rootLoop
                 }
@@ -126,7 +125,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                                     continue
                                 }
                                 let url = m[1]
-                                if (url.startsWith('//')) url = 'https:' + url
+                                url = new URL(url, item.url).href
 
                                 yield {
                                     target_id: target.id,
@@ -158,7 +157,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     for (let url of links) {
                         episode++
 
-                        if (url.startsWith('//')) url = 'https:' + url
+                        url = new URL(url, item.url).href
 
                         yield {
                             target_id: target.id,

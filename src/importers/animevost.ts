@@ -49,7 +49,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            const html = await fetch(`https://${domain}/page/${page++}/`).then(i => i.text())
+            const pageUrl = `https://${domain}/page/${page++}/`
+            const html = await fetch(pageUrl).then(i => i.text())
             const $ = cheerio.load(html)
 
             const items = $('.shortstory').toArray()
@@ -72,8 +73,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     continue
                 }
 
-                if (url.startsWith('//')) url = 'https:' + url
-                if (url.startsWith('/')) url = 'https://' + domain + url
+                url = new URL(url, pageUrl).href
 
                 const m = url.match(/\/tip\/[a-z-]+\/(\d+)/)
                 if (!m) {
@@ -142,7 +142,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                             const $ = cheerio.load(html)
                             let url = $('iframe').attr('src')
                             if (!url) return null
-                            if (url.startsWith('//')) url = 'https:' + url
+                            url = new URL(url, it.url).href
 
                             return {
                                 target_id: meta.id,

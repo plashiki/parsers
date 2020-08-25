@@ -28,7 +28,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     rootLoop:
         while (true) {
-            let html = await fetch(`https://animejoy.ru/page/${page++}/`, { headers }).then(i => i.text())
+            const pageUrl = `https://animejoy.ru/page/${page++}/`
+            let html = await fetch(pageUrl, { headers }).then(i => i.text())
             const $ = cheerio.load(html)
 
             let items = $('.block.story')
@@ -44,8 +45,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 if (!url) continue
                 if (title.match(/анонс/i)) continue
 
-                if (url.startsWith('//')) url = 'https:' + url
-                if (url[0] === '/') url = 'https://animejoy.ru' + url
+                url = new URL(url, pageUrl).href
 
                 let m = url.match(/\.ru\/(.+?\/(\d+))/)
                 if (!m) {
@@ -144,8 +144,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         for (let node of playlistItems) {
             let el = $(node)
 
-            let url = el.data('file') as string
-            if (url.startsWith('//')) url = 'https:' + url
+            let url = new URL(el.data('file'), item.url).href
             if (url.includes('video.animejoy.ru')) url = url.replace('video.animejoy.ru', 'start.u-cdn.top')
 
             let title = el.text()

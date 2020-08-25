@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation } from '../../types'
+import { MediaMeta, Translation } from '../../types'
 
 interface AnimejoyMeta {
     id: string
@@ -99,7 +99,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         let postTitle = $('#dle-content .titleup .ntitle').text().replace(/\s*\[.*$/i, '')
         let romajiTitle = $('#dle-content .titleup .romanji').text() // bro its not romanji bro
 
-        let targetId: number = -1
+        let target: MediaMeta | null = null
 
         let externalUrl = $('.abasel .ansdb')
             .toArray()
@@ -108,18 +108,16 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 i => i.text().match(/myanimelist|shikimori/i)
             )[0]?.attr('href')
         if (externalUrl) {
-            let metaResult = await ctx.deps['common/mapper-url2meta'](externalUrl)
-            if (metaResult) targetId = parseInt(metaResult.id)
+            target = await ctx.deps['common/mapper-url2meta'](externalUrl)
         }
-        if (targetId === -1) {
-            let target = await ctx.deps['common/lookup']({
+        if (!target) {
+            target = await ctx.deps['common/lookup']({
                 names: [romajiTitle, postTitle]
             })
-            if (!target) {
-                ctx.log('didnt find: %s / %s', romajiTitle, postTitle)
-                continue
-            }
-            targetId = target.id
+        }
+        if (!target || target.type !== 'anime') {
+            ctx.log('didnt find: %s / %s', romajiTitle, postTitle)
+            continue
         }
 
         let playlistElement = $('.playlists-ajax')
@@ -168,7 +166,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             if (episode > maxEpisode) maxEpisode = episode
 
             yield {
-                target_id: targetId,
+                target_id: target.id,
                 target_type: 'anime',
                 part: episode,
                 kind: 'sub',

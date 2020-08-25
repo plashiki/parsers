@@ -21,11 +21,13 @@ export type TranslationLanguage =
 export type TranslationKind = 'sub' | 'dub' | 'scan' | 'off' | 'raw'
 export type MediaType = 'anime' | 'manga'
 
+export interface ExternalId {
+    service: ExternalService
+    id: string | number
+}
+
 export interface Translation {
-    target_id: number | {
-        service: ExternalService
-        id: string | number
-    }
+    target_id: number | ExternalId
     target_type: MediaType
     part: number
 
@@ -44,23 +46,8 @@ export interface Mapping {
 }
 
 export interface MediaMeta {
-    // case when id is known from meta-info, nothing special here
-
-    /**
-     * Target ID
-     */
-    id: number
-
-    /**
-     * Target type
-     */
+    id: ExternalId
     type: MediaType
-
-    /**
-     * Target service ID. Default is MAL.
-     * common/lookup always returns MAL id.
-     */
-    service?: string
 }
 
 export interface LookupOptions {

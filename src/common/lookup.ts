@@ -285,7 +285,10 @@ export function entry (ctx: ParserContext): Function {
                     }
 
                     return {
-                        id,
+                        id: {
+                            id,
+                            service: 'mal'
+                        },
                         type: mediaType
                     }
                 }

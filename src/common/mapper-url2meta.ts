@@ -1,11 +1,5 @@
-import { ExternalService, MediaType } from '../../types'
+import { ExternalService, MediaMeta, MediaType } from '../../types'
 import { ParserContext } from '../../types/ctx'
-
-export interface MapperMeta {
-    name: ExternalService
-    id: string
-    type: MediaType
-}
 
 type UrlRule = [RegExp, ExternalService, MediaType, number]
 
@@ -35,15 +29,17 @@ export function entry (ctx: ParserContext): Function {
         [/^(?:https?:)?\/\/(?:www\.)(?:smotret-?anime|anime365|hentai365)\.(?:ru|onlnie)\/catalog\/[a-zA-Z0-9\-]+(\d+)(?:\/|$|\?)/, 'anime365', 'anime', 1],
     ]
 
-    return async function (url: string): Promise<MapperMeta | null> {
+    return async function (url: string): Promise<MediaMeta | null> {
         // urls containing id can be parsed right away
-        for (const [regex, name, type, grp] of urlRules) {
+        for (const [regex, service, type, grp] of urlRules) {
             const match = url.match(regex)
             if (match) {
                 return {
-                    name,
                     type,
-                    id: match[grp]
+                    id: {
+                        service,
+                        id: match[grp]
+                    }
                 }
             }
         }
@@ -56,8 +52,10 @@ export function entry (ctx: ParserContext): Function {
                 return null
             }
             return {
-                name: 'thetvdb',
-                id: it.id,
+                id: {
+                    service: 'thetvdb',
+                    id: it.id
+                },
                 type: 'anime'
             }
         }

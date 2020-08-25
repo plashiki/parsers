@@ -5,7 +5,6 @@ import { VkImporterOptions } from '../src/services/vk-video'
 import { RegexAdapterOptions } from '../src/common/regex-adapter'
 import { AnitomyAdapterOptions } from '../src/common/anitomy-adapter'
 import { IncrementalGrabOptions } from '../src/common/incremental-grab'
-import { MapperMeta } from '../src/common/mapper-url2meta'
 import { SibnetImporterOptions } from '../src/services/sibnet'
 import { MyviImporterOptions } from '../src/services/myvi'
 import { CaptchaSolver } from '../src/common/captcha-solver'
@@ -57,7 +56,7 @@ export interface ParserContext<P = AnyKV> {
         'common/anitomy-adapter'<T> (options: AnitomyAdapterOptions<T>): ParserAdapter<T, Translation>
         'common/fix-mixed-langs' (str: string): string
         'common/incremental-grab'<T> (options: IncrementalGrabOptions<T>): AsyncIterable<T>
-        'common/mapper-url2meta' (url: string): Promise<MapperMeta | null>
+        'common/mapper-url2meta' (url: string): Promise<MediaMeta | null>
         'services/vk-video'<T> (options: VkImporterOptions<T>): AsyncIterable<T>
         'services/sibnet'<T> (options: SibnetImporterOptions<T>): AsyncIterable<T>
         'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>

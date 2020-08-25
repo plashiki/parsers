@@ -36,7 +36,7 @@ export async function * entry (ctx: ParserContext) {
                 for (let href of urls) {
                     const meta = await ctx.deps['common/mapper-url2meta'](href)
                     if (meta) {
-                        mappings[meta.name] = meta.id
+                        mappings[meta.id.service] = meta.id.id + ''
                     }
                 }
 

@@ -73,12 +73,12 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 const title = $$('.release__title-primary').text()
                 const secondary = $$('.release__title-second').children().toArray().map(it => $$(it).text())
 
-                m = page.match(/this\.services\s*=\s*Object\.values\(({.+?})\)/)
-                if (!m) {
+                let prop = $$('player-component').attr(':services_props')
+                if (!prop) {
                     ctx.log('failed to find available players: %s', url)
                     continue
                 }
-                const players = Object.values(JSON.parse(m[1]))
+                const players = Object.values(JSON.parse(prop))
                     .map(i => (i as any).from)
                     .filter(i => i !== 'trailer')
 

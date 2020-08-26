@@ -133,4 +133,5 @@ export interface MediaPart {
     media_type: MediaType
     media_id: number
     number: number
+    title: string
 }

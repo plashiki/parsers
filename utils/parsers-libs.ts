@@ -18,6 +18,7 @@ import { RelationsParser } from '../engine/relations'
 import { DEBUG } from './debug'
 import { AbortController, AbortSignal } from 'abort-controller'
 import puppeteer from 'puppeteer'
+import { asyncPool } from './async-pool'
 
 let httpAgent = undefined
 if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {
@@ -73,6 +74,7 @@ export const libs = {
     },
     AbortController,
     AbortSignal,
+    asyncPool,
 
     // when running locally there's a file-based stub,
     // so dont use typeorm api as it wont be available

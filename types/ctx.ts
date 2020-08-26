@@ -9,7 +9,6 @@ import { SibnetImporterOptions } from '../src/services/sibnet'
 import { MyviImporterOptions } from '../src/services/myvi'
 import { CaptchaSolver } from '../src/common/captcha-solver'
 import { CloudflareUamBypass } from '../src/common/.cf-uam-bypass'
-import { YieldItem } from '../src/common/async-pool'
 
 export interface ParserContext<P = AnyKV> {
     /**
@@ -45,11 +44,6 @@ export interface ParserContext<P = AnyKV> {
      * Parser's dependencies. Key is provided parser's UID, value is their return value
      */
     deps: {
-        'common/async-pool' <T, V> (
-            callback: (idx: number, item: T) => V,
-            iterable: Iterable<T> | AsyncIterable<T>,
-            limit?: number
-        ): AsyncIterable<YieldItem<T, V>>
         'common/lookup' (options: LookupOptions): Promise<MediaMeta | null>
         'common/regex-adapter'<T> (optionsArray: RegexAdapterOptions<T>[]): ParserAdapter<T, Translation>
         'common/compose'<T, R> (adapters: ParserAdapter<T, R>[]): ParserAdapter<T, R>

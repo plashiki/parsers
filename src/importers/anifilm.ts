@@ -22,6 +22,7 @@ interface AnifilmMeta {
 }
 
 export const provide = ['common/lookup']
+export const storage = ['aflm-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio } = ctx.libs

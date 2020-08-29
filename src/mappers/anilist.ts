@@ -8,6 +8,8 @@ interface AnilistMedia {
     updatedAt: number
 }
 
+export const storage = ['alst-ls']
+
 export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> {
     const { kv, fetch, sleep } = ctx.libs
 

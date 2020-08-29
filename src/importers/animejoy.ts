@@ -8,6 +8,7 @@ interface AnimejoyMeta {
 }
 
 export const provide = ['common/lookup', 'common/mapper-url2meta']
+export const storage = ['ajoy-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio } = ctx.libs

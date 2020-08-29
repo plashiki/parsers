@@ -9,6 +9,7 @@ export const provide = [
     'common/regex-adapter',
     'common/anitomy-adapter'
 ]
+export const storage = ['vkv-ls:$UID']
 
 export function entry (ctx: ParserContext) {
     const urlSymbol = Symbol.for('item-url')

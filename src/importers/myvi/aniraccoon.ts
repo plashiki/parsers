@@ -1,6 +1,7 @@
 import { ParserContext } from '../../../types/ctx'
 
 export const provide = ['services/myvi', 'common/regex-adapter']
+export const storage = ['mv-ls:$UID']
 
 export function entry (ctx: ParserContext) {
     return ctx.deps['services/myvi']({

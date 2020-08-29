@@ -9,6 +9,7 @@ interface AniraccoonMeta {
 }
 
 export const provide = ['common/lookup']
+export const storage = ['ls-anrc%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio } = ctx.libs

@@ -42,6 +42,8 @@ interface SrAnime {
     episode_current_sub: number
 }
 
+export const storage = ['sr-ls']
+
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, objectUtils, qs } = ctx.libs
 

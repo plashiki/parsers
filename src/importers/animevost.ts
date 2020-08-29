@@ -8,6 +8,7 @@ interface AnimevostMeta {
 }
 
 export const provide = ['common/lookup']
+export const storage = ['avst-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio } = ctx.libs

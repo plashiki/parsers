@@ -77,6 +77,7 @@ interface KodikEnvelope<T> {
 }
 
 export const provide = ['common/lookup']
+export const storage = ['kodik-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, mappings } = ctx.libs

@@ -2,6 +2,7 @@ import { ParserContext } from '../../types/ctx'
 import { ExternalService, ExternalServiceMappings, Translation } from '../../types'
 
 export const provide = ['common/lookup']
+export const storage = ['a365-ls']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, mappings } = ctx.libs

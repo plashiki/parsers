@@ -15,6 +15,8 @@ interface LookupFactoryOptions<T, V> {
     getId (it: V, data: T): number | null | Promise<number | null>
 }
 
+export const storage = ['~lookup:%']
+
 export function entry (ctx: ParserContext): Function {
     const CONFLICTING_RESULT = Symbol('CONFLICTING_RESULT')
     const { kv, fetch, sleep, qs, objectUtils, fuzz } = ctx.libs

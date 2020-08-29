@@ -9,6 +9,7 @@ interface NarutoBaseMeta {
 
 
 export const provide = ['common/lookup']
+export const storage = ['nb-ls%', 'nb-def']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio, objectUtils } = ctx.libs

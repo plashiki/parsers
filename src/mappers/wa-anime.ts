@@ -7,6 +7,8 @@ export const provide = [
     'common/mapper-url2meta'
 ]
 
+export const storage = ['inc-ls:$UID']
+
 export async function * entry (ctx: ParserContext) {
     const { sleep, fetch, iconv, cheerio } = ctx.libs
 

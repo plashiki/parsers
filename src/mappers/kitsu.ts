@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { ExternalService, ExternalServiceMappings, MapperResult } from '../../types'
+import { ExternalService, MapperResult } from '../../types'
 
 interface KitsuMapping {
     id: string
@@ -21,6 +21,8 @@ interface KitsuMapping {
         }
     }
 }
+
+export const storage = ['kitsu-ls']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<MapperResult> {
     const { kv, fetch } = ctx.libs

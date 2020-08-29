@@ -21,6 +21,7 @@ export interface Module {
 
     compile?: StringKV
     provide?: string[]
+    storage?: string[]
     disabled?: boolean
     public_?: string
     ready?: boolean

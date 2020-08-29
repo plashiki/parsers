@@ -1,7 +1,6 @@
 import { ParserContext } from '../../types/ctx'
 import { Translation } from '../../types'
 
-export const provide = ['common/lookup']
 
 interface AnilibriaEnvelope<T> {
     status: boolean
@@ -43,6 +42,9 @@ interface AnilibriaEpisode {
     srcSd?: string
     srcHd?: string
 }
+
+export const provide = ['common/lookup']
+export const storage = ['al-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, qs } = ctx.libs

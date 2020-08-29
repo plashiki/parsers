@@ -38,6 +38,7 @@ async function main () {
 
         const cached = cache[mod.uid]
         mod.source = getSource(mod)
+        mod.storage = mod.storage?.map(i => i.replace(/\$UID/g, mod.uid!))
         const sourceHash = createSourceHash(mod)
         if (!cached || cached.hash !== sourceHash) {
             mod.compiled = compileModule(mod)
@@ -64,6 +65,7 @@ async function main () {
                 upsert: updated.map((mod) => ({
                     uid: mod.uid,
                     provide: mod.provide,
+                    storage: mod.storage,
                     disabled: mod.disabled ?? false,
                     cri: mod.cri ?? false,
                     code: mod.compiled,

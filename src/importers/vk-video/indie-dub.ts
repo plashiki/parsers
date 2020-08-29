@@ -1,6 +1,7 @@
 import { ParserContext } from '../../../types/ctx'
 
 export const provide = ['services/vk-video', 'common/regex-adapter']
+export const storage = ['vkv-ls:$UID']
 
 export function entry (ctx: ParserContext) {
     return ctx.deps['services/vk-video']({

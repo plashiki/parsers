@@ -1,6 +1,7 @@
 import { ParserContext } from '../../../types/ctx'
 
 export const provide = ['services/sibnet', 'common/regex-adapter']
+export const storage = ['sn-ls:$UID']
 
 export function entry (ctx: ParserContext) {
     return ctx.deps['services/sibnet']({

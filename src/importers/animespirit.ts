@@ -246,6 +246,9 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 if (author.match(/^(?:[pр][yу][cс]{2}ки[eе] )?[cс][уy]бтит[pр]ы$/i)) {
                     kind = 'sub'
                     author = subtitlesAuthor
+                } else if (author.match(/^(?:[pр][yу][cс]{2}ки[eе] )?[cс][уy]бтит[pр]ы:?/i)) {
+                    kind = 'sub'
+                    author = author.match(/^(?:[pр][yу][cс]{2}ки[eе] )?[cс][уy]бтит[pр]ы:?(.*)/i)![1].trim()
                 } else if (author.match(/^(?:[pр][yу][cс]{2}к(?:[aа]я|[oо][eе]) )?[oо]зв[yу]ч(?:к[aа]|ив[aа]ни[eе])$/i) || author === '') {
                     author = Object.keys(dubAuthors)[0] || ''
                 } else if (author.match(/^(?:[pр][yу][cс]{2}к(?:[aа]я|[oо][eе]) )?[oо]зв[yу]ч(?:ен[oо]|к[aа]|ив[aа]ни[eе]):?/i)) {
@@ -254,6 +257,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 if (author.match(/если кто знает/i)) author = ''
                 author = author.replace(/присутствует назойливая реклама$/i, '')
+
 
                 url = prepareUrl(url)
 

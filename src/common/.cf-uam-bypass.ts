@@ -31,9 +31,10 @@ export interface CloudflareUamBypassFetchResponse {
 
 export interface CloudflareUamBypass {
     /**
-     * Bypass UAM for a given URL. After finishing, use `getCookieFor()`
+     * Bypass UAM for a given URL. After finishing, use `getCookieFor()`.
+     * Returns URL containing __cf_chl_(jschl|captcha)_tk__ query parameter
      */
-    bypass (url: string): Promise<void>
+    bypass (url: string): Promise<string>
 
     /**
      * Get `Cookie and `User-Agent` header values that has UAM clearance for a given URL.

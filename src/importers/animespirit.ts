@@ -253,6 +253,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 }
 
                 if (author.match(/если кто знает/i)) author = ''
+                author = author.replace(/присутствует назойливая реклама$/i, '')
 
                 url = prepareUrl(url)
 

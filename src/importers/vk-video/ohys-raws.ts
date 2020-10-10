@@ -14,7 +14,6 @@ export function entry (ctx: ParserContext) {
                 author: 'Ohys-Raws',
                 kind: 'raw',
                 lang: 'jp',
-                hq: false
             }
         })
     })

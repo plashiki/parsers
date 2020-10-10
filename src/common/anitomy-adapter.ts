@@ -79,15 +79,6 @@ export function entry (ctx: ParserContext): Function {
                 ret.kind = 'raw'
             }
 
-            if (result.video_resolution) {
-                ret.hq = !!result.video_resolution.match(/720|1080/)
-            } else if (result.video_term) {
-                ret.hq = !!result.video_term.match(/hd|hq/i)
-            } else if (ret.hq === undefined) {
-                // default fallback.
-                ret.hq = false
-            }
-
             if (result.release_group) {
                 ret.author = ctx.deps['common/fix-mixed-langs'](result.release_group)
             } else if (!ret.author) {

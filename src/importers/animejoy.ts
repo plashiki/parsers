@@ -172,7 +172,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 kind: 'sub',
                 lang: 'ru',
                 author: '', // they sometimes translate themselves but usually it's just wakanim, and there's no way to detect that
-                hq: !url.match(/sibnet/i),
                 url
             }
         }

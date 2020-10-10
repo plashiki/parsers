@@ -111,7 +111,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             target_type: 'anime' as const,
             kind: 'dub' as const,
             lang: 'ru' as const,
-            hq: true,
             author: 'AniLibria' + (rel.voices.length ? ' (' + rel.voices.join(', ') + ')' : ''),
         }
 

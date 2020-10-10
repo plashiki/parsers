@@ -267,7 +267,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     target_type: 'anime',
                     target_id: target.id,
                     part: episode,
-                    hq: false,
                     kind,
                     lang: 'ru',
                     author: author.trim(),

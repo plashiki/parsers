@@ -117,7 +117,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 part,
                 kind: el.text().match(/субтитр/) ? 'sub' : 'dub',
                 lang: 'ru',
-                hq: !src.match(/sibnet|myvi|rutube/),
                 author: 'Naruto-Base',
                 url: src
             }

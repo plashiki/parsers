@@ -33,7 +33,6 @@ export interface Translation {
 
     kind: TranslationKind
     lang: TranslationLanguage
-    hq: boolean
     author: string
 
     url: string

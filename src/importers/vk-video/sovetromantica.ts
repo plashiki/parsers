@@ -64,7 +64,6 @@ export function entry (ctx: ParserContext) {
             }
 
             const translation: Translation = {
-                hq: video[hqSymbol],
                 target_id: target.id,
                 target_type: target.type,
                 author: authors.length > 0 ? `SovetRomantica (${authors.join(', ')})` : 'SovetRomantica',

@@ -73,7 +73,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 part: Math.floor(parseFloat(tr.episode.episodeInt)),
                 kind: kinds[tr.typeKind],
                 lang: langs[tr.typeLang] || 'other',
-                hq: tr.qualityType === 'bd',
                 author: tr.authorsSummary.trim(),
                 url: tr.embedUrl
             }

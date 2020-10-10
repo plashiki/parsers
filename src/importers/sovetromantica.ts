@@ -116,7 +116,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             part: item.episode_count,
             kind: item.episode_type === 0 ? 'sub' : 'dub',
             lang: 'ru',
-            hq: true,
             author: 'SovetRomantica',
             // replacing url to mirror, which is not banned by rkn
             url: item.embed.replace(/sovetromantica\.com/i, 'sovetromantica.moe')

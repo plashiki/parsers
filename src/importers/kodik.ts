@@ -221,7 +221,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                         kind,
                         lang: 'ru',
                         author,
-                        hq,
                         part: episode,
                         url: url + '?translations=false'
                     }
@@ -240,7 +239,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 kind,
                 lang: 'ru',
                 author,
-                hq,
                 part: 1,
                 url: it.link + '?translations=false'
             }

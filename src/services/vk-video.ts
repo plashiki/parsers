@@ -19,7 +19,6 @@ export interface VkImporterOptions<T> {
 
 export function entry (ctx: ParserContext): Function {
     const urlSymbol = Symbol.for('item-url')
-    const hqSymbol = Symbol.for('item-hq')
     const { kv, fetch, qs, sleep, normalizeUrl } = ctx.libs
 
     return async function * <T> (options: VkImporterOptions<T>): AsyncIterable<T> {
@@ -94,7 +93,6 @@ export function entry (ctx: ParserContext): Function {
 
             // provide common things
             item[urlSymbol] = normalizeUrl(item.player)
-            item[hqSymbol] = item.height >= 720
 
             const ret = await options.adapter(item)
             yield * ret

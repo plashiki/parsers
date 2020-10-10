@@ -33,7 +33,6 @@ export interface RegexAdapterOptions<T> {
         kind: RegexFieldResolver<T, string /* TranslationKind */>
         lang: RegexFieldResolver<T, string /* TranslationLanguage */>
 
-        hq?: RegexFieldResolver<T, boolean>
         author: RegexFieldResolver<T, string>
         url?: RegexFieldResolver<T, string>
     }
@@ -122,17 +121,6 @@ export function entry (ctx: ParserContext): Function {
                     ctx.log('No URL found. At %o', item)
                 }
 
-                // load hq by symbol (if one), else fallback to false
-                let hq = false
-                if (hqSymbol in item) {
-                    hq = item[hqSymbol]
-                } else if ('hq' in options.fields) {
-                    let res = await resolve(options.fields.hq)
-                    if (res !== undefined) {
-                        hq = res
-                    }
-                }
-
                 // do target lookup
                 if ('names' in target) {
                     // need lookup
@@ -148,7 +136,6 @@ export function entry (ctx: ParserContext): Function {
 
                 const translation: Translation = {
                     author: ctx.deps['common/fix-mixed-langs'](await resolve(options.fields.author) ?? ''),
-                    hq,
                     kind: await resolve(options.fields.kind) as TranslationKind,
                     lang: await resolve(options.fields.lang) as TranslationLanguage,
                     part,

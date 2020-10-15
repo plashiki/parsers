@@ -77,7 +77,7 @@ export function entry (ctx: ParserContext) {
             let ownPlayer = video.description.match(/https?:\/\/(?:www\.)?sovetromantica\.(?:com|moe)\/anime\/(\d+)\/episode_(\d+-(?:subtitles|dubbed))/)
             if (ownPlayer) {
                 let ownPlayerTranslation = ctx.libs.objectUtils.clone(translation)
-                translation.url = `https://sovetromantica.moe/embed/episode_${ownPlayer[1]}_${ownPlayer[2]}`
+                translation.url = `https://sovetromantica.com/embed/episode_${ownPlayer[1]}_${ownPlayer[2]}`
                 ret.push(ownPlayerTranslation)
             }
 

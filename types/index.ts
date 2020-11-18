@@ -49,6 +49,11 @@ export interface MediaMeta {
     type: MediaType
 }
 
+export interface MediaSeason {
+    year: number
+    season: 'winter' | 'spring' | 'summer' | 'fall'
+}
+
 export interface LookupOptions {
     /**
      * Known anime names, in order of priority.
@@ -56,6 +61,24 @@ export interface LookupOptions {
      * This way resolving will work better.
      */
     names: (string | undefined)[]
+
+    /**
+     * If known, media start season
+     * If passed, will only use items that have the same start season
+     */
+    startSeason?: MediaSeason | null
+
+    /**
+     * If known, media end season
+     * If passed, will only use items that have the same end season
+     */
+    endSeason?: MediaSeason | null
+
+    /**
+     * If known, media start or end season
+     * If passed, will only use items that have the same season, either start or end
+     */
+    someSeason?: MediaSeason | null
 
     /**
      * Default is Anime

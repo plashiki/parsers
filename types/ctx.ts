@@ -44,7 +44,6 @@ export interface ParserContext<P = AnyKV> {
      * Parser's dependencies. Key is provided parser's UID, value is their return value
      */
     deps: {
-        'common/lookup' (options: LookupOptions): Promise<MediaMeta | null>
         'common/regex-adapter'<T> (optionsArray: RegexAdapterOptions<T>[]): ParserAdapter<T, Translation>
         'common/compose'<T, R> (adapters: ParserAdapter<T, R>[]): ParserAdapter<T, R>
         'common/anitomy-adapter'<T> (options: AnitomyAdapterOptions<T>): ParserAdapter<T, Translation>
@@ -55,6 +54,7 @@ export interface ParserContext<P = AnyKV> {
         'services/sibnet'<T> (options: SibnetImporterOptions<T>): AsyncIterable<T>
         'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>
 
+        'common/lookup': LookupOptions
         'common/captcha-solver': CaptchaSolver
         'common/cf-uam-bypass': CloudflareUamBypass
 

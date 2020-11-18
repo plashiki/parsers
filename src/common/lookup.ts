@@ -1,4 +1,4 @@
-import { LookupOptions, MediaMeta, MediaType } from '../../types'
+import { LookupOptions, MediaMeta, MediaSeason, MediaType } from '../../types'
 import { ParserContext } from '../../types/ctx'
 
 interface LookupFactoryOptions<T, V> {
@@ -13,11 +13,17 @@ interface LookupFactoryOptions<T, V> {
     getPrimaryName (it: V): string
 
     getId (it: V, data: T): number | null | Promise<number | null>
+
+    getSeasons (it: V): { start: MediaSeason | null, end: MediaSeason | null }
+}
+
+export type LookupInterface = ((options: LookupOptions) => Promise<MediaMeta | null>) & {
+    parseDateToSeason (date: string | Date): MediaSeason
 }
 
 export const storage = ['~lookup:%']
 
-export function entry (ctx: ParserContext): Function {
+export function entry (ctx: ParserContext): LookupInterface {
     const CONFLICTING_RESULT = Symbol('CONFLICTING_RESULT')
     const { kv, fetch, sleep, qs, objectUtils, fuzz } = ctx.libs
 
@@ -84,6 +90,29 @@ export function entry (ctx: ParserContext): Function {
             .trim()
     }
 
+    function seasonsEqual (a: MediaSeason, b: MediaSeason): boolean {
+        return a.year === b.year && a.season === b.season
+    }
+
+    function getMonthSeason (month: number): MediaSeason['season'] {
+        return month <= 2 || month == 12
+            ? 'winter'
+            : 3 <= month && month <= 5
+                ? 'spring'
+                : 6 <= month && month <= 8
+                    ? 'summer'
+                    : 'fall'
+    }
+
+    function parseDateToSeason (date: string | Date): MediaSeason {
+        if (!(date instanceof Date)) date = new Date(date)
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const season = getMonthSeason(month)
+
+        return { year, season }
+    }
+
     function shikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
         return fetch(`https://shikimori.one/api/${mediaType}s?${qs.stringify({
             search: name,
@@ -118,6 +147,14 @@ export function entry (ctx: ParserContext): Function {
                     '        english\n' +
                     '        native\n' +
                     '      }\n' +
+                    '      startDate {\n' +
+                    '        year\n' +
+                    '        month\n' +
+                    '      }' +
+                    '      endDate {\n' +
+                    '        year\n' +
+                    '        month\n' +
+                    '      }' +
                     '    }\n' +
                     '  }\n' +
                     '}',
@@ -137,7 +174,7 @@ export function entry (ctx: ParserContext): Function {
         return fetch(`https://kitsu.io/api/edge/${mediaType}?${qs.stringify({
             'filter[text]': name,
             'page[limit]': 15,
-            'fields[anime]': 'titles,canonicalTitle,abbreviatedTitles,mappings',
+            'fields[anime]': 'titles,canonicalTitle,abbreviatedTitles,mappings,startDate,endDate',
             'include': 'mappings',
             'fields[mappings]': 'externalSite,externalId'
         })}`).then(i => i.json())
@@ -146,7 +183,7 @@ export function entry (ctx: ParserContext): Function {
     function malSearch (mediaType: MediaType, name: string): Promise<any[]> {
         return fetch('https://api.myanimelist.net/v2/anime?' + qs.stringify({
             q: name,
-            fields: 'alternative_titles',
+            fields: 'alternative_titles,start_date,end_date',
             limit: 15
         }), {
             headers: {
@@ -175,8 +212,8 @@ export function entry (ctx: ParserContext): Function {
     //     })
     // }
 
-    function lookupFactory<T, V> (options: LookupFactoryOptions<T, V>): (mediaType: MediaType, names: string[]) => Promise<MediaMeta | null> {
-        return async function lookup (mediaType: MediaType, names: string[]): Promise<MediaMeta | null> {
+    function lookupFactory<T, V> (options: LookupFactoryOptions<T, V>): (mediaType: MediaType, names: string[], options: LookupOptions) => Promise<MediaMeta | null> {
+        return async function lookup (mediaType: MediaType, names: string[], lookupOptions: LookupOptions): Promise<MediaMeta | null> {
             let perNameMaxScoreBase: Record<string, number> = {}
             names.forEach((i) => {
                 perNameMaxScoreBase[i] = 0
@@ -222,8 +259,7 @@ export function entry (ctx: ParserContext): Function {
                 const data = await options.search(mediaType, name)
                 const iter = options.getIterable(data)
 
-                let maxScore = 0
-                let scoreHistory: number[] = []
+                let history: [V, number][] = [] // (item, score) tuples
                 let maxScoreItem: V | null = null
 
                 for (let [i, it] of objectUtils.enumerate(iter)) {
@@ -264,24 +300,33 @@ export function entry (ctx: ParserContext): Function {
 
                     ctx.debug('score = %f for names %o and item %o', totalScore, names, itNames)
 
-                    scoreHistory.push(totalScore)
-                    if (totalScore > maxScore) {
-                        maxScore = totalScore
-                        maxScoreItem = it
-                    }
+                    history.push([it, totalScore])
                 }
 
-                scoreHistory.sort((a, b) => b - a)
-                if (scoreHistory.length > 2 && Math.abs(scoreHistory[0] - scoreHistory[1]) < 5) {
-                    ctx.debug('close match: %o', scoreHistory)
+                history.sort((a, b) => b[1] - a[1])
+                if (history.length > 2 && Math.abs(history[0][1] - history[1][1]) < 5) {
+                    ctx.debug('close match: %o', history.map(i => i[1]))
                     hadConflict = true
                     continue
                 }
 
-                if (maxScoreItem && maxScore > minAcceptableScore) {
-                    ctx.debug('%s found %s for names %o (score: %d)',
-                        options.name, options.getPrimaryName(maxScoreItem), names, maxScore)
-                    const id = await options.getId(maxScoreItem, data)
+                for (let [item, score] of history) {
+                    if (score < minAcceptableScore) continue
+
+                    if (lookupOptions.someSeason || lookupOptions.startSeason || lookupOptions.endSeason) {
+                        let seasons = options.getSeasons(item)
+                        if (lookupOptions.startSeason && (!seasons.start || !seasonsEqual(lookupOptions.startSeason, seasons.start))) continue
+                        if (lookupOptions.endSeason && (!seasons.end || !seasonsEqual(lookupOptions.endSeason, seasons.end))) continue
+                        if (lookupOptions.someSeason
+                            && (
+                                seasons.start && !seasonsEqual(lookupOptions.someSeason, seasons.start)
+                                || seasons.end && !seasonsEqual(lookupOptions.someSeason, seasons.end)
+                            )
+                        ) continue
+                    }
+
+                    ctx.debug('%s found %s for names %o (score: %d)', options.name, options.getPrimaryName(item), names, score)
+                    const id = await options.getId(item, data)
                     if (id === null) {
                         return null
                     }
@@ -293,6 +338,7 @@ export function entry (ctx: ParserContext): Function {
                         },
                         type: mediaType
                     }
+
                 }
             }
 
@@ -316,7 +362,11 @@ export function entry (ctx: ParserContext): Function {
                 return ret
             },
             getPrimaryName: it => it.name,
-            getId: it => it.id
+            getId: it => it.id,
+            getSeasons: it => ({
+                start: it.aired_on ? parseDateToSeason(it.aired_on) : null,
+                end: it.released_on ? parseDateToSeason(it.released_on) : null,
+            })
         }),
         anilist: lookupFactory<any[], any>({
             name: 'anilist',
@@ -329,7 +379,17 @@ export function entry (ctx: ParserContext): Function {
                 return ret
             },
             getPrimaryName: it => it.title.romaji,
-            getId: it => it.idMal
+            getId: it => it.idMal,
+            getSeasons: it => ({
+                start: it.startDate.year && it.startDate.month ? {
+                    year: it.startDate.year,
+                    season: getMonthSeason(it.startDate.month)
+                } : null,
+                end: it.endDate.year && it.endDate.month ? {
+                    year: it.endDate.year,
+                    season: getMonthSeason(it.endDate.month)
+                } : null
+            })
         }),
         kitsu: lookupFactory<any, any>({
             name: 'kitsu',
@@ -359,7 +419,11 @@ export function entry (ctx: ParserContext): Function {
                 }
 
                 return null
-            }
+            },
+            getSeasons: it => ({
+                start: it.attributes.startDate ? parseDateToSeason(it.attributes.startDate) : null,
+                end: it.attributes.endDate ? parseDateToSeason(it.attributes.endDate) : null,
+            })
         }),
         mal: lookupFactory<any[], any>({
             name: 'mal',
@@ -374,7 +438,11 @@ export function entry (ctx: ParserContext): Function {
                 return ret
             },
             getPrimaryName: it => it.node.title,
-            getId: it => it.node.id
+            getId: it => it.node.id,
+            getSeasons: it => ({
+                start: it.node.start_date ? parseDateToSeason(it.node.start_date) : null,
+                end: it.node.end_date ? parseDateToSeason(it.node.end_date) : null,
+            })
         }),
         // anime365: lookupFactory<any[], any>({
         //     name: 'anime365',
@@ -384,17 +452,18 @@ export function entry (ctx: ParserContext): Function {
         //     getPrimaryName: it => it.titles.romaji,
         //     getId: it => it.myAnimeListId
         // })
-        'google-shikimori': lookupFactory<any[], any>({
-            name: 'google-shikimori',
-            search: googleShikimoriSearch,
-            getIterable: i => i.filter(i => i.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)),
-            getNames: it => [it.title.split(/ \/ | \.\.\./)[0]],
-            getPrimaryName: it => it.title.split(/ \/ | \.\.\./)[0],
-            getId: it => it.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)![1]
-        })
+        // 'google-shikimori': lookupFactory<any[], any>({
+        //     name: 'google-shikimori',
+        //     search: googleShikimoriSearch,
+        //     getIterable: i => i.filter(i => i.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)),
+        //     getNames: it => [it.title.split(/ \/ | \.\.\./)[0]],
+        //     getPrimaryName: it => it.title.split(/ \/ | \.\.\./)[0],
+        //     getId: it => it.link.match(/https?:\/\/shikimori\.one\/(?:animes|mangas|ranobe)\/[a-z]+(\d+)(?:[a-z-]+)?\/?$/i)![1],
+        //     getSeasons: () => ({ start: null, end: null })
+        // })
     }
 
-    return async function (options: LookupOptions): Promise<MediaMeta | null> {
+    const lookup: LookupInterface = async function (options: LookupOptions): Promise<MediaMeta | null> {
         // sanitize input
         let names = options.names.filter(i => i && i.trim() !== '')
         if (!names.length) {
@@ -439,7 +508,7 @@ export function entry (ctx: ParserContext): Function {
         for (let service of queue) {
             let media = null
             try {
-                media = await lookupFunctions[service](options.mediaType ?? 'anime', names)
+                media = await lookupFunctions[service](options.mediaType ?? 'anime', names, options)
             } catch (e) {
                 if (e === CONFLICTING_RESULT && !hadConflict) {
                     hadConflict = true
@@ -471,5 +540,9 @@ export function entry (ctx: ParserContext): Function {
         }
 
         return null
-    }
+    } as any
+
+    lookup.parseDateToSeason = parseDateToSeason
+
+    return lookup
 }

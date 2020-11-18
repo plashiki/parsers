@@ -9,6 +9,7 @@ import { SibnetImporterOptions } from '../src/services/sibnet'
 import { MyviImporterOptions } from '../src/services/myvi'
 import { CaptchaSolver } from '../src/common/captcha-solver'
 import { CloudflareUamBypass } from '../src/common/.cf-uam-bypass'
+import { LookupInterface } from '../src/common/lookup'
 
 export interface ParserContext<P = AnyKV> {
     /**
@@ -54,7 +55,7 @@ export interface ParserContext<P = AnyKV> {
         'services/sibnet'<T> (options: SibnetImporterOptions<T>): AsyncIterable<T>
         'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>
 
-        'common/lookup': LookupOptions
+        'common/lookup': LookupInterface
         'common/captcha-solver': CaptchaSolver
         'common/cf-uam-bypass': CloudflareUamBypass
 

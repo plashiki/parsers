@@ -116,7 +116,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             part: item.episode_count,
             kind: item.episode_type === 0 ? 'sub' : 'dub',
             lang: 'ru',
-            author: 'SovetRomantica',
+            author: { group: 'SovetRomantica' },
             url: item.embed // .replace(/sovetromantica\.com/i, 'sovetromantica.moe')
         }
 

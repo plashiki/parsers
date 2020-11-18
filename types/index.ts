@@ -26,6 +26,12 @@ export interface ExternalId {
     id: string | number
 }
 
+export interface TranslationAuthor {
+    group?: string
+    people?: string[] | string
+    ripper?: string
+}
+
 export interface Translation {
     target_id: number | ExternalId
     target_type: MediaType
@@ -33,7 +39,7 @@ export interface Translation {
 
     kind: TranslationKind
     lang: TranslationLanguage
-    author: string
+    author: TranslationAuthor
 
     url: string
 }

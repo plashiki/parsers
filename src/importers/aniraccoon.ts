@@ -134,7 +134,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                                     part: episode,
                                     kind,
                                     lang: 'ru',
-                                    author,
+                                    author: { group: author },
                                     url
                                 }
                             }
@@ -165,7 +165,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                             part: episode,
                             kind,
                             lang: 'ru',
-                            author,
+                            author: { group: author },
                             url
                         }
                     }

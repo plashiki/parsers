@@ -28,7 +28,10 @@ export function entry (ctx: ParserContext) {
                     part: m => m[3],
                     kind: 'dub',
                     lang: 'ru',
-                    author: m => ((m[5] || '') + (m[4] ? m[5] ? ' (' + m[4] + ')' : m[4] : '')) || 'AniMedia'
+                    author: m => ({
+                        group: m[5] || 'AniMedia',
+                        people: m[4]
+                    })
                 }
             },
             {

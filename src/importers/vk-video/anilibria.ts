@@ -28,7 +28,7 @@ export function entry (ctx: ParserContext) {
             ctx.deps['common/anitomy-adapter']({
                 target: v => v.title,
                 override: {
-                    author: 'AniLibria',
+                    author: { group: 'AniLibria' },
                     kind: 'dub',
                     lang: 'ru'
                 }

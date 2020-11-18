@@ -111,7 +111,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
             target_type: 'anime' as const,
             kind: 'dub' as const,
             lang: 'ru' as const,
-            author: 'AniLibria' + (rel.voices.length ? ' (' + rel.voices.join(', ') + ')' : ''),
+            author: {
+                group: 'AniLibria',
+                people: rel.voices
+            }
         }
 
         let lastSavedEpisode = await kv.get(`al-ls:${rel.id}`, 0)

@@ -1,7 +1,7 @@
 import { ParserContext } from '../../types/ctx'
 import { ExternalService, ExternalServiceMappings, Translation } from '../../types'
 
-export const provide = ['common/lookup']
+export const provide = ['common/lookup', 'common/parse-author']
 export const storage = ['a365-ls']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
@@ -73,7 +73,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 part: Math.floor(parseFloat(tr.episode.episodeInt)),
                 kind: kinds[tr.typeKind],
                 lang: langs[tr.typeLang] || 'other',
-                author: tr.authorsSummary.trim(),
+                author: ctx.deps['common/parse-author'](tr.authorsSummary.trim()),
                 url: tr.embedUrl
             }
 

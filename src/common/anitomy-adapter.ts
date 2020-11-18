@@ -80,9 +80,9 @@ export function entry (ctx: ParserContext): Function {
             }
 
             if (result.release_group) {
-                ret.author = ctx.deps['common/fix-mixed-langs'](result.release_group)
+                ret.author = { group: ctx.deps['common/fix-mixed-langs'](result.release_group) }
             } else if (!ret.author) {
-                ret.author = ''
+                ret.author = {}
             }
 
             let urlResolver = options.getUrl ?? item[urlSymbol] as any

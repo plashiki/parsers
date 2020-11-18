@@ -1,4 +1,4 @@
-import { AnyKV, LookupOptions, MediaMeta, ParserAdapter, Translation } from './index'
+import { AnyKV, LookupOptions, MediaMeta, ParserAdapter, Translation, TranslationAuthor } from './index'
 import { Debugger } from 'debug'
 import { libs } from '../utils/parsers-libs'
 import { VkImporterOptions } from '../src/services/vk-video'
@@ -51,6 +51,7 @@ export interface ParserContext<P = AnyKV> {
         'common/fix-mixed-langs' (str: string): string
         'common/incremental-grab'<T> (options: IncrementalGrabOptions<T>): AsyncIterable<T>
         'common/mapper-url2meta' (url: string): Promise<MediaMeta | null>
+        'common/parse-author' (author: string): TranslationAuthor
         'services/vk-video'<T> (options: VkImporterOptions<T>): AsyncIterable<T>
         'services/sibnet'<T> (options: SibnetImporterOptions<T>): AsyncIterable<T>
         'services/myvi'<T> (options: MyviImporterOptions<T>): AsyncIterable<T>

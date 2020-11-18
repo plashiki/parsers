@@ -11,7 +11,7 @@ export function entry (ctx: ParserContext) {
             // they also upload non-anime asian stuff under Exclusive-Raws
             skip: v => !v.title.match(/\[Ohys-Raws\]/),
             fallback: {
-                author: 'Ohys-Raws',
+                author: { group: 'Ohys-Raws' },
                 kind: 'raw',
                 lang: 'jp',
             }

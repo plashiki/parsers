@@ -171,7 +171,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 part: episode,
                 kind: 'sub',
                 lang: 'ru',
-                author: '', // they sometimes translate themselves but usually it's just wakanim, and there's no way to detect that
+                author: {
+                    // they sometimes translate themselves but usually it's just wakanim, and there's no way to detect that
+                    group: url.includes('wakanim.tv') ? 'Wakanim' : undefined
+                },
                 url
             }
         }

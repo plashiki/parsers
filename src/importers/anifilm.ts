@@ -154,7 +154,10 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                         part: n,
                         kind: 'dub',
                         lang: 'ru',
-                        author: 'AniFilm' + (it.voices ? ` (${it.voices.join(', ')})` : ''),
+                        author: {
+                            group: 'AniFilm',
+                            people: it.voices
+                        },
                         url: pl.iframe
                     }
 

@@ -151,7 +151,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                                 part: n,
                                 kind: 'dub',
                                 lang: 'ru',
-                                author: 'AnimeVost',
+                                author: { group: 'AnimeVost' },
                                 url
                             }
                         })

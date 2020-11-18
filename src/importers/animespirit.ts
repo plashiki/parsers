@@ -6,7 +6,7 @@ interface AnimespiritMeta {
     updatedAt: string
 }
 
-export const provide = ['common/lookup']
+export const provide = ['common/lookup', 'common/parse-author']
 export const storage = ['aspr-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
@@ -269,7 +269,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     part: episode,
                     kind,
                     lang: 'ru',
-                    author: author.trim(),
+                    author: ctx.deps['common/parse-author'](author.trim()),
                     url
                 }
             } catch (e) {

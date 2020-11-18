@@ -76,7 +76,7 @@ interface KodikEnvelope<T> {
     results: T
 }
 
-export const provide = ['common/lookup']
+export const provide = ['common/lookup', 'common/parse-author']
 export const storage = ['kodik-ls%']
 
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
@@ -220,7 +220,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                         target_type: 'anime',
                         kind,
                         lang: 'ru',
-                        author,
+                        author: ctx.deps['common/parse-author'](author),
                         part: episode,
                         url: url + '?translations=false'
                     }
@@ -238,7 +238,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 target_type: 'anime',
                 kind,
                 lang: 'ru',
-                author,
+                author: ctx.deps['common/parse-author'](kind),
                 part: 1,
                 url: it.link + '?translations=false'
             }

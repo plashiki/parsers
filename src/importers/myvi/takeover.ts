@@ -15,7 +15,10 @@ export function entry (ctx: ParserContext) {
                     part: m => m[1] || m[2] || m[4] || m[7],
                     kind: m => m[8]?.match(/субтитры/i) ? 'sub' : 'dub',
                     lang: 'ru',
-                    author: m => 'TAKEOVER Project' + (m[9] ? ` (${m[9]})` : '')
+                    author: m => ({
+                        group: 'TAKEOVER Project',
+                        people: m[9]
+                    })
                 }
             }
         ])

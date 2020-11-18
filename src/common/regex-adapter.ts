@@ -2,7 +2,14 @@
 // heavily based on older parsers engine
 
 import { ParserContext } from '../../types/ctx'
-import { ImporterTarget, ParserAdapter, Translation, TranslationKind, TranslationLanguage } from '../../types'
+import {
+    ImporterTarget,
+    ParserAdapter,
+    Translation,
+    TranslationAuthor,
+    TranslationKind,
+    TranslationLanguage,
+} from '../../types'
 
 
 type RegexFieldResolver<T, R> = ((match: RegExpMatchArray, item: T) => R | Promise<R>) | R
@@ -33,7 +40,7 @@ export interface RegexAdapterOptions<T> {
         kind: RegexFieldResolver<T, string /* TranslationKind */>
         lang: RegexFieldResolver<T, string /* TranslationLanguage */>
 
-        author: RegexFieldResolver<T, string>
+        author: RegexFieldResolver<T, TranslationAuthor | string | string[]>
         url?: RegexFieldResolver<T, string>
     }
 
@@ -134,8 +141,18 @@ export function entry (ctx: ParserContext): Function {
                     }
                 }
 
+                let author = await resolve(options.fields.author)
+                if (Array.isArray(author)) author = { people: author }
+                if (typeof author === 'string') author = { group: author }
+                if (typeof author.people === 'string') author.people = author.people.split(/[,;]|\s[и&]\s/gi)
+
+
+                if (author.group) author.group = ctx.deps['common/fix-mixed-langs'](author.group)
+                if (author.people) author.people = author.people.map(ctx.deps['common/fix-mixed-langs'])
+                if (author.ripper) author.ripper = ctx.deps['common/fix-mixed-langs'](author.ripper)
+
                 const translation: Translation = {
-                    author: ctx.deps['common/fix-mixed-langs'](await resolve(options.fields.author) ?? ''),
+                    author: author,
                     kind: await resolve(options.fields.kind) as TranslationKind,
                     lang: await resolve(options.fields.lang) as TranslationLanguage,
                     part,

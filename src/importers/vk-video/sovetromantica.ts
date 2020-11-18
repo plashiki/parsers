@@ -13,7 +13,6 @@ export const storage = ['vkv-ls:$UID']
 
 export function entry (ctx: ParserContext) {
     const urlSymbol = Symbol.for('item-url')
-    const hqSymbol = Symbol.for('item-hq')
 
     return ctx.deps['services/vk-video']({
         owner: -33905270,
@@ -66,7 +65,10 @@ export function entry (ctx: ParserContext) {
             const translation: Translation = {
                 target_id: target.id,
                 target_type: target.type,
-                author: authors.length > 0 ? `SovetRomantica (${authors.join(', ')})` : 'SovetRomantica',
+                author: {
+                    group: 'SovetRomantica',
+                    people: authors
+                },
                 kind: kind as TranslationKind,
                 lang: 'ru',
                 part: episode,

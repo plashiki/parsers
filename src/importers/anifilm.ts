@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation } from '../../types'
+import { MediaSeason, Translation } from '../../types'
 
 interface AnifilmPlayer {
     id: string
@@ -17,6 +17,7 @@ interface AnifilmMeta {
     title: string
     secondary: string[]
     voices: string[]
+    season: MediaSeason | null
 
     players: string[]
 }
@@ -32,6 +33,21 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
     let backlog: AnifilmMeta[] = []
     let backlogIndex: Record<number, true> = {}
+
+    const SEASONS: Record<string, MediaSeason['season']> = {
+        'Зима': 'winter',
+        'Весна': 'spring',
+        'Лето': 'summer',
+        'Осень': 'fall',
+    }
+    function parseSeason (s: string): MediaSeason | null {
+        let [name, yearStr] = s.split(' ')
+        let year = parseInt(yearStr)
+        if (isNaN(year)) return null
+        if (!(name in SEASONS)) return null
+
+        return { season: SEASONS[name], year }
+    }
 
     rootLoop:
         while (true) {
@@ -73,6 +89,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 const title = $$('.release__title-primary').text()
                 const secondary = $$('.release__title-second').children().toArray().map(it => $$(it).text())
+                const seasonText = $$('.table-list__label:contains("Сезон")').parent().find('.table-list__value').text()
+                const season = parseSeason(seasonText)
 
                 let prop = $$('player-component').attr(':services_props')
                 if (!prop) {
@@ -89,6 +107,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                     title,
                     secondary,
                     players,
+                    season,
                     voices: $$('.release__work-item--voice>a').toArray().map(i => $(i).text())
                 })
             }
@@ -103,7 +122,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         if (!it) break
 
         const target = await ctx.deps['common/lookup']({
-            names: [it.title, ...it.secondary]
+            names: [it.title, ...it.secondary],
+            startSeason: it.season
         })
         if (!target) {
             ctx.log('lookup failed: %s, %t', it.title, it.secondary)

@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation, TranslationKind } from '../../types'
+import { MediaSeason, Translation, TranslationKind } from '../../types'
 
 interface AnimespiritMeta {
     url: string
@@ -13,6 +13,13 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio, iconv } = ctx.libs
 
     const _3dTrash = /live action|dorama|дорам[аы]|д[yу]н[xх][yу][aа]/i
+
+    const SEASONS: Record<string, MediaSeason['season']> = {
+        'зима': 'winter',
+        'весна': 'spring',
+        'лето': 'summer',
+        'осень': 'fall',
+    }
 
     function prepareUrl (s: string): string | null {
         if (s.includes('rutube.ru') && s.includes('.iflv')) {
@@ -65,8 +72,20 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         const title = $('#dle-content .content-block-title').text().trim()
         const secondaryTitle = $('#dle-content td>b>h3').text().trim()
+
+        let [seasonNameText, seasonYear] = $('b:contains("Сезон:")').next().text().split('-')
+        let season: MediaSeason | null = null
+        if (seasonNameText && seasonYear && seasonNameText in SEASONS && !isNaN(parseInt(seasonYear))) {
+            season = {
+                season: SEASONS[seasonNameText],
+                year: parseInt(seasonYear)
+            }
+        }
+
+
         const target = await ctx.deps['common/lookup']({
-            names: [secondaryTitle, title]
+            names: [secondaryTitle, title],
+            startSeason: season
         })
         if (!target) {
             ctx.debug('lookup failed: %s %s', secondaryTitle, title)
@@ -219,12 +238,17 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 if (path.length === 2) {
                     author = path[0]
-                } else if (path.length === 0) {
+                } else if (path.length === 1 || path.length === 0) {
                     let authorEl = el.find('>span').first()
-                    if (authorEl) {
+                    if (authorEl.length) {
                         author = authorEl.text()
                     } else {
-                        author = text.match(/ \(.+?\)/)![0]
+                        let match = text.match(/ \(.+?\)/)
+                        if (match) {
+                            author = match[0]
+                        } else {
+                            author = ''
+                        }
                     }
                 } else {
                     ctx.log('unexpected path length at %s: %d', url, path.length)

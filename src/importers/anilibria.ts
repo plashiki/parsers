@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation } from '../../types'
+import { MediaSeason, Translation } from '../../types'
 
 
 interface AnilibriaEnvelope<T> {
@@ -27,6 +27,10 @@ interface AnilibriaRelease {
     moon: string | null
     voices: string[]
     playlist: AnilibriaEpisode[]
+
+    // зима/весна/лето/осень
+    season: string
+    year: string
 }
 
 interface AnilibriaEpisode {
@@ -57,6 +61,20 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     let backlogIndex: Record<number, true> = {}
     let page = 1
 
+    const SEASONS: Record<string, MediaSeason['season']> = {
+        'зима': 'winter',
+        'весна': 'spring',
+        'лето': 'summer',
+        'осень': 'fall',
+    }
+
+    const getSeason = (rel: AnilibriaRelease): MediaSeason | null => {
+        if (!rel.season || !rel.year || !(rel.season in SEASONS) || isNaN(parseInt(rel.year))) return null
+        return {
+            year: parseInt(rel.year),
+            season: SEASONS[rel.season]
+        }
+    }
 
     rootLoop:
         while (true) {
@@ -69,7 +87,7 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 body: qs.stringify({
                     query: 'feed',
                     perPage: firstRun ? 200 : 150, // they don't have max limit tho
-                    filter: 'id,last,names,moon,voices,season,playlist',
+                    filter: 'id,last,names,moon,voices,season,playlist,year',
                     page: page++
                 })
             }).then(i => i.json())
@@ -103,7 +121,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         if (!rel) break
 
         let media = await ctx.deps['common/lookup']({
-            names: rel.names
+            names: rel.names,
+            startSeason: getSeason(rel)
         })
         if (!media) continue
         let common = {

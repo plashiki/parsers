@@ -1,5 +1,5 @@
 import { ParserContext } from '../../types/ctx'
-import { Translation } from '../../types'
+import { MediaSeason, Translation } from '../../types'
 
 interface AnimevostMeta {
     id: number
@@ -13,7 +13,7 @@ export const storage = ['avst-ls%']
 export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     const { kv, fetch, cheerio } = ctx.libs
 
-    const domain = process.env.PRODUCTION ? 'animevost.org' : 'a49.agorov.org'
+    const domain = process.env.PRODUCTION ? 'animevost.org' : 'a78.agorov.org'
 
     const lastSaved = await kv.get('avst-ls', '1970-01-01')
     ctx.debug('lastSaved = %s', lastSaved)
@@ -113,6 +113,12 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
         const [, russian, original] = m
 
+        const year = $('strong:contains("выхода:")').parent().text().split(' ').pop()
+        const season: MediaSeason | null = year && !isNaN(parseInt(year)) ? {
+            season: 'any',
+            year: parseInt(year)
+        } : null
+
         const lastSavedEpisode = await kv.get(`avst-ls:${it.id}`, 0)
         m = html.match(/data\s*=\s*({.+?})/)
         if (!m) {
@@ -122,7 +128,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         const data = JSON.parse(m[1].replace(',}', '}'))
 
         const meta = await ctx.deps['common/lookup']({
-            names: [original, russian]
+            names: [original, russian],
+            startSeason: season
         })
         if (!meta) {
             ctx.debug('lookup failed')

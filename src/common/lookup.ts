@@ -113,6 +113,20 @@ export function entry (ctx: ParserContext): LookupInterface {
         return { year, season }
     }
 
+    function getCacheKey (name: string, options: LookupOptions): string {
+        let parts = ['~lookup']
+
+        if (options.startSeason) parts.push(`${options.startSeason.season}${options.startSeason.year}>`)
+        if (options.endSeason) parts.push(`<${options.endSeason.season}${options.endSeason.year}`)
+
+        // it would be better to check both of the previous keys, but im too lazy to implement that
+        if (options.someSeason && !options.startSeason && !options.endSeason)
+            parts.push(`<${options.someSeason.season}${options.someSeason.year}>`)
+
+        parts.push(name)
+        return parts.join(':')
+    }
+
     function shikimoriSearch (mediaType: MediaType, name: string): Promise<any[]> {
         return fetch(`https://shikimori.one/api/${mediaType}s?${qs.stringify({
             search: name,
@@ -491,7 +505,8 @@ export function entry (ctx: ParserContext): LookupInterface {
         }
 
         for (let name of names) {
-            const cached = await kv.get<any>(`~lookup:${name}`, null)
+            if (!name) continue
+            const cached = await kv.get<any>(getCacheKey(name, options), null)
             if (cached && cached.r >= Date.now()) {
                 if (cached.v !== null) {
                     ctx.debug('cached %s %d for name %s', cached.v.type, cached.v.id, name)
@@ -520,7 +535,8 @@ export function entry (ctx: ParserContext): LookupInterface {
             }
             if (media !== null) {
                 for (let name of names) {
-                    await kv.set(`~lookup:${name}`, {
+                    if (!name) continue
+                    await kv.set(getCacheKey(name, options), {
                         r: Date.now() + 604800000, // 1 week
                         v: media
                     })
@@ -533,7 +549,8 @@ export function entry (ctx: ParserContext): LookupInterface {
         }
 
         for (let name of names) {
-            await kv.set(`~lookup:${name}`, {
+            if (!name) continue
+            await kv.set(getCacheKey(name, options), {
                 r: Date.now() + 86400000, // 1 day
                 v: null
             })

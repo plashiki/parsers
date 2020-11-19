@@ -1,10 +1,11 @@
 import { ParserContext } from '../../types/ctx'
-import { MediaMeta, Translation } from '../../types'
+import { MediaMeta, MediaSeason, Translation } from '../../types'
 
 interface AnimejoyMeta {
     id: string
     url: string
     updatedAt: string
+    startSeason: MediaSeason | null
 }
 
 export const provide = ['common/lookup', 'common/mapper-url2meta']
@@ -58,6 +59,9 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
 
                 if (id in backlogIndex) continue
 
+                const startDateMatch = el.find('.zerop .timpact:contains("выпуска:")').parent().text().match(/^\s*(?:[cс]\s*)?(?:\?\?|\d{1,2}).(\d{1,2}).(\d{4})?/)
+                let startSeason = startDateMatch ? ctx.deps['common/lookup'].parseDateToSeason(`01-${startDateMatch[1]}-${startDateMatch[2]}`) : null
+
                 const updatedAt = await fetch(url, {
                     method: 'HEAD',
                     headers
@@ -82,7 +86,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
                 backlog.push({
                     id,
                     url,
-                    updatedAt
+                    updatedAt,
+                    startSeason
                 })
             }
 
@@ -113,7 +118,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         }
         if (!target) {
             target = await ctx.deps['common/lookup']({
-                names: [romajiTitle, postTitle]
+                names: [romajiTitle, postTitle],
+                startSeason: item.startSeason
             })
         }
         if (!target || target.type !== 'anime') {

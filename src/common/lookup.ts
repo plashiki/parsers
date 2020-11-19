@@ -91,7 +91,7 @@ export function entry (ctx: ParserContext): LookupInterface {
     }
 
     function seasonsEqual (a: MediaSeason, b: MediaSeason): boolean {
-        return a.year === b.year && a.season === b.season
+        return a.year === b.year && (a.season === b.season || a.season === 'any' || b.season === 'any')
     }
 
     function getMonthSeason (month: number): MediaSeason['season'] {

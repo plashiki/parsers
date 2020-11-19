@@ -57,7 +57,7 @@ export interface MediaMeta {
 
 export interface MediaSeason {
     year: number
-    season: 'winter' | 'spring' | 'summer' | 'fall'
+    season: 'winter' | 'spring' | 'summer' | 'fall' | 'any'
 }
 
 export interface LookupOptions {

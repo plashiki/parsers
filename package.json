@@ -30,7 +30,7 @@
         "iconv-lite": "^0.5.1",
         "jsdom": "^16.2.2",
         "json5": "^2.1.3",
-        "node-fetch": "^2.6.0",
+        "node-fetch": "^2.6.1",
         "normalize-url": "^5.0.0",
         "protoflex": "^0.1.1",
         "puppeteer": "^5.2.1",

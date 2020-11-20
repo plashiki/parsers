@@ -11,6 +11,8 @@ import type JSDOM from 'jsdom'
 import PB from 'protoflex'
 import * as anitomy from '@teidesu/anitomy-js'
 import * as fuzz from 'fuzzball'
+import acorn from 'acorn'
+import * as JSON5 from 'json5'
 import KeyValue from './key-value'
 import normalizeUrl from 'normalize-url'
 import { DynamicOptions, ExternalServiceMappings, MediaPart, MediaType } from '../types'
@@ -30,6 +32,8 @@ if (process.env.FETCH_PROXY && process.env.FETCH_PROXY !== 'null') {
 
 export const libs = {
     cheerio,
+    acorn,
+    JSON5,
     fetch(
         url: RequestInfo,
         init?: RequestInit

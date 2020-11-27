@@ -178,7 +178,6 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         }
 
         // determine hq, kind and author
-        let hq = !!it.quality.match(/bd|hd|1080p|720p/i)
         let kind = 'dub' as TranslationKind
         let author = it.translation.title.trim()
         if (author === 'Субтитры') {
@@ -190,6 +189,8 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
         } else if (author === 'MedusaSub') {
             kind = 'sub'
         }
+        if (author.match(/AniLibria\.TV/i)) author = 'AniLibria'
+        if (author.match(/anistar многоголосый/i)) author = 'AniStar'
 
         if (it.type === 'anime-serial') {
             // first remove crap from seasons

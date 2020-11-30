@@ -80,27 +80,29 @@ export async function * entry (ctx: ParserContext): AsyncIterable<Translation> {
     let backlogIndex: Record<number, true> = {}
     let offset = 0
 
-    rootLoop:
-        while (true) {
-            const json: SrTranslation[] = await fetch(`https://service.sovetromantica.com/v1/last_episodes?limit=30&offset=${offset}`).then(i => i.json())
+    while (true) {
+        const json: SrTranslation[] = await fetch(`https://service.sovetromantica.com/v1/last_episodes?limit=30&offset=${offset}`).then(i => i.json())
 
-            if (json.length === 0) break
-            offset += 30
+        if (json.length === 0) break
+        offset += 30
 
-            for (let tr of json) {
-                if (tr.episode_id <= lastSaved) {
-                    break rootLoop
-                }
-                if (!(tr.episode_id in backlogIndex)) {
-                    backlogIndex[tr.episode_id] = true
-                    backlog.push(tr)
-                }
+        let end = false
+        for (let tr of json) {
+            if (tr.episode_id <= lastSaved) {
+                end = true
+                break
             }
-
-            await loadAnimes(json.map(i => i.episode_anime))
-
-            ctx.debug('loaded %d items', backlog.length)
+            if (!(tr.episode_id in backlogIndex)) {
+                backlogIndex[tr.episode_id] = true
+                backlog.push(tr)
+            }
         }
+
+        await loadAnimes(json.map(i => i.episode_anime))
+
+        ctx.debug('loaded %d items', backlog.length)
+        if (end) break
+    }
 
     // reset index because we dont need it anymore
     backlogIndex = {}
